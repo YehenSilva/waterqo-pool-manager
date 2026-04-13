@@ -1,0 +1,6 @@
+services:
+  - type: web
+    name: waterqo-pool-manager
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: python service.py
