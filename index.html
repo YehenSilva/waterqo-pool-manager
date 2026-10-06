@@ -1,0 +1,3291 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://cdnjs.cloudflare.com; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com https://*.google.com https://poolservice-cef5b.firebaseapp.com wss://*.firebaseio.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob:; frame-ancestors 'none';">
+<meta http-equiv="X-Content-Type-Options" content="nosniff">
+<meta name="referrer" content="strict-origin-when-cross-origin">
+<title>Waterqo | Pool Service</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="icon" type="image/png" sizes="32x32" href="logo.png">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600;700&family=IBM+Plex+Mono:wght@500;600&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/dompurify/3.1.6/purify.min.js"></script>
+<style>
+:root{
+  --ink:#0B2740;
+  --teal-deep:#1668A6;
+  --aqua:#1C9AD6;
+  --aqua-soft:#E5F3FB;
+  --amber:#F0A83A;
+  --amber-soft:#FDF1DE;
+  --danger:#D9534F;
+  --danger-soft:#FBEAE9;
+  --bg:#F4F8FB;
+  --card:#FFFFFF;
+  --border:#D9E7F1;
+  --muted:#5E7A93;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{
+  font-family:'Inter',sans-serif;
+  background:var(--bg);
+  color:var(--ink);
+  -webkit-font-smoothing:antialiased;
+}
+h1,h2,h3,.display{font-family:'Space Grotesk',sans-serif;}
+.mono{font-family:'IBM Plex Mono',monospace;}
+button{font-family:inherit;cursor:pointer;border:none;background:none;}
+input,select,textarea{font-family:inherit;}
+
+/* ---------- Wave signature element ---------- */
+.wave{
+  display:block;width:100%;height:14px;
+  background-image: radial-gradient(circle at 10px -6px, transparent 12px, var(--aqua) 13px, var(--aqua) 14px, transparent 15px);
+  background-size:28px 20px;
+  background-repeat:repeat-x;
+  opacity:0.55;
+}
+.wave.amber{background-image: radial-gradient(circle at 10px -6px, transparent 12px, var(--amber) 13px, var(--amber) 14px, transparent 15px);}
+.wave.danger{background-image: radial-gradient(circle at 10px -6px, transparent 12px, var(--danger) 13px, var(--danger) 14px, transparent 15px);}
+
+/* ---------- App shell ---------- */
+#app{display:none;}
+#login-screen{
+  min-height:100vh;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(160deg,var(--ink) 0%, var(--teal-deep) 55%, var(--aqua) 130%);
+  padding:20px;
+}
+.login-card{
+  background:var(--card);border-radius:16px;padding:36px 32px;width:100%;max-width:380px;
+  box-shadow:0 30px 60px rgba(14,42,50,0.35);
+}
+.login-brand{display:flex;align-items:center;gap:10px;margin-bottom:6px;}
+.brand-logo{height:30px;width:auto;max-width:140px;object-fit:contain;display:block;}
+.sidebar .brand-logo{height:26px;}
+.login-brand .dot{width:12px;height:12px;border-radius:50%;background:var(--aqua);box-shadow:0 0 0 4px var(--aqua-soft);}
+.login-brand h1{font-size:22px;color:var(--ink);}
+.login-sub{color:var(--muted);font-size:13px;margin-bottom:24px;}
+.field{margin-bottom:14px;}
+.field label{display:block;font-size:12px;font-weight:600;color:var(--teal-deep);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.04em;}
+.field input,.field select,.field textarea{
+  width:100%;padding:11px 12px;border:1.5px solid var(--border);border-radius:9px;font-size:14px;color:var(--ink);
+  background:#FCFEFE;transition:border-color .15s;
+}
+.field input:focus,.field select:focus,.field textarea:focus{outline:none;border-color:var(--aqua);}
+.btn{
+  padding:11px 18px;border-radius:9px;font-size:14px;font-weight:600;transition:transform .1s, box-shadow .15s;
+  display:inline-flex;align-items:center;gap:6px;justify-content:center;
+}
+.btn:active{transform:scale(0.97);}
+.btn-primary{background:var(--teal-deep);color:#fff;}
+.btn-primary:hover{background:var(--ink);}
+.btn-aqua{background:var(--aqua);color:#fff;}
+.btn-aqua:hover{box-shadow:0 4px 14px rgba(20,184,176,0.4);}
+.btn-amber{background:var(--amber);color:#fff;}
+.btn-amber:hover{box-shadow:0 4px 14px rgba(240,168,58,0.4);}
+.btn-danger{background:var(--danger);color:#fff;}
+.btn-outline{background:transparent;border:1.5px solid var(--border);color:var(--teal-deep);}
+.btn-outline:hover{border-color:var(--teal-deep);}
+.btn-block{width:100%;}
+.btn-sm{padding:7px 12px;font-size:12.5px;border-radius:7px;}
+#login-error{color:var(--danger);font-size:13px;margin-top:10px;display:none;}
+
+/* ---------- Layout ---------- */
+.shell{display:flex;min-height:100vh;}
+.sidebar{
+  width:220px;background:var(--ink);color:#fff;padding:24px 16px;flex-shrink:0;
+  display:flex;flex-direction:column;
+}
+.sidebar .brand{display:flex;align-items:center;gap:9px;padding:0 8px 28px;}
+.sidebar .brand .dot{width:11px;height:11px;border-radius:50%;background:var(--aqua);}
+.sidebar .brand span{font-family:'Space Grotesk';font-size:17px;font-weight:600;}
+.nav-item{
+  display:flex;align-items:center;gap:10px;padding:11px 12px;border-radius:9px;color:#B9D4D4;
+  font-size:14px;font-weight:500;margin-bottom:4px;transition:background .15s,color .15s;
+}
+.nav-item:hover{background:rgba(255,255,255,0.06);color:#fff;}
+.nav-item.active{background:var(--aqua);color:#fff;}
+.nav-item .badge{margin-left:auto;background:var(--amber);color:#fff;font-size:10.5px;font-weight:700;padding:2px 6px;border-radius:20px;}
+.sidebar-footer{margin-top:auto;padding-top:16px;border-top:1px solid rgba(255,255,255,0.1);}
+.sidebar-footer .user-email{font-size:11.5px;color:#8FB3B3;word-break:break-all;margin-bottom:8px;}
+
+.main{flex:1;padding:28px 32px 100px;max-width:1180px;}
+.topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;flex-wrap:wrap;gap:12px;}
+.topbar h2{font-size:24px;}
+.topbar .sub{color:var(--muted);font-size:13.5px;margin-top:3px;}
+
+.searchbar{position:relative;max-width:320px;}
+.searchbar input{width:100%;padding:10px 14px 10px 34px;border-radius:9px;border:1.5px solid var(--border);background:#fff;font-size:13.5px;}
+.searchbar::before{content:"⌕";position:absolute;left:12px;top:50%;transform:translateY(-50%);color:var(--muted);font-size:16px;}
+
+/* ---------- Cards / grid ---------- */
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:14px;margin-bottom:26px;}
+.stat-card{background:var(--card);border-radius:13px;padding:18px 20px;border:1px solid var(--border);position:relative;overflow:hidden;}
+.stat-card .num{font-family:'Space Grotesk';font-size:30px;font-weight:700;}
+.stat-card .label{color:var(--muted);font-size:12.5px;margin-top:4px;font-weight:500;}
+.stat-card.accent-amber .num{color:var(--amber);}
+.stat-card.accent-danger .num{color:var(--danger);}
+.stat-card.accent-aqua .num{color:var(--aqua);}
+
+.section-title{font-size:15px;font-weight:700;margin:26px 0 12px;display:flex;align-items:center;gap:8px;}
+
+/* ---------- Dashboard accordions ---------- */
+.accordion{margin-bottom:12px;border-radius:13px;}
+.accordion-header{
+  display:flex;align-items:center;justify-content:space-between;gap:12px;cursor:pointer;
+  padding:14px 16px;border-radius:13px;background:var(--card);border:1.5px solid var(--border);
+  user-select:none;transition:background .15s,border-color .15s;
+}
+.accordion-header:hover{background:var(--aqua-soft);}
+.accordion-header .ah-title{display:flex;align-items:center;gap:9px;font-size:14.5px;font-weight:700;}
+.accordion-header .ah-right{display:flex;align-items:center;gap:12px;}
+.accordion-header .ah-count{
+  background:var(--aqua-soft);color:var(--teal-deep);font-size:12px;font-weight:700;
+  padding:3px 10px;border-radius:20px;min-width:20px;text-align:center;
+}
+.accordion.tone-danger .accordion-header{border-color:var(--danger);}
+.accordion.tone-danger .ah-count{background:var(--danger-soft);color:var(--danger);}
+.accordion.tone-amber .accordion-header{border-color:var(--amber);}
+.accordion.tone-amber .ah-count{background:var(--amber-soft);color:#9a6a17;}
+.accordion.tone-aqua .accordion-header{border-color:var(--aqua);}
+.accordion-chevron{color:var(--muted);font-size:12px;transition:transform .2s ease;display:inline-block;}
+.accordion.open .accordion-header .accordion-chevron{transform:rotate(90deg);}
+.accordion.open .accordion-header{border-radius:13px 13px 0 0;}
+.accordion-body{max-height:0;overflow:hidden;transition:max-height .28s ease;}
+.accordion.open .accordion-body{max-height:6000px;}
+.accordion-body-inner{padding:14px 4px 2px;}
+
+.stat-card.clickable{cursor:pointer;transition:transform .12s ease,box-shadow .12s ease;}
+.stat-card.clickable:hover{transform:translateY(-2px);box-shadow:0 6px 16px rgba(11,39,64,0.10);}
+.stat-card.clickable::after{content:"›";position:absolute;right:14px;top:14px;color:var(--muted);font-size:16px;opacity:.5;}
+
+.card{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:18px 20px;margin-bottom:12px;}
+.card.alert-amber{border-color:var(--amber);background:linear-gradient(0deg,var(--amber-soft),var(--amber-soft));}
+.card.alert-danger{border-color:var(--danger);background:var(--danger-soft);}
+.card-row{display:flex;justify-content:space-between;align-items:flex-start;gap:14px;flex-wrap:wrap;}
+.card-title{font-weight:700;font-size:15px;}
+.card-meta{color:var(--muted);font-size:12.5px;margin-top:3px;}
+.card-actions{display:flex;gap:8px;flex-wrap:wrap;}
+
+/* Make alert cards and dashboard accordion cards more compact */
+.accordion-body-inner .card, 
+.card.alert-amber, 
+.card.alert-danger, 
+.card.alert-aqua {
+  padding: 8px 14px;
+  margin-bottom: 6px;
+  border-radius: 8px;
+}
+.accordion-body-inner .card-row, 
+.card.alert-amber .card-row, 
+.card.alert-danger .card-row, 
+.card.alert-aqua .card-row {
+  align-items: center;
+  gap: 8px;
+}
+.accordion-body-inner .card-title,
+.card.alert-amber .card-title,
+.card.alert-danger .card-title,
+.card.alert-aqua .card-title {
+  font-size: 14px;
+  font-weight: 700;
+}
+.accordion-body-inner .card-meta,
+.card.alert-amber .card-meta,
+.card.alert-danger .card-meta,
+.card.alert-aqua .card-meta {
+  font-size: 11.5px;
+  margin-top: 1px;
+}
+.accordion-body-inner .btn-sm,
+.card.alert-amber .btn-sm,
+.card.alert-danger .btn-sm,
+.card.alert-aqua .btn-sm {
+  padding: 5px 10px;
+  font-size: 12px;
+  min-height: 28px;
+}
+.accordion-body-inner .pool-gauge {
+  margin-top: 4px;
+  height: 6px;
+}
+
+.pill{display:inline-flex;align-items:center;gap:5px;padding:3px 10px;border-radius:20px;font-size:11.5px;font-weight:700;text-transform:uppercase;letter-spacing:.03em;}
+.pill-progress{background:var(--aqua-soft);color:var(--teal-deep);}
+.pill-review{background:var(--amber-soft);color:#9a6a17;}
+.pill-invoice{background:var(--amber-soft);color:#9a6a17;}
+.pill-payment{background:var(--danger-soft);color:var(--danger);}
+.pill-done{background:#E5F6EA;color:#2E8B4F;}
+.invoice-tag{display:inline-flex;align-items:center;gap:4px;background:var(--aqua-soft);color:var(--teal-deep);border:1px solid var(--border);padding:2px 7px;border-radius:6px;font-size:11px;font-family:'IBM Plex Mono',monospace;font-weight:600;}
+.invoice-tag.clickable{cursor:pointer;transition:all .15s;}
+.invoice-tag.clickable:hover{background:#d8edf8;border-color:var(--aqua);}
+.invoice-tag-empty{display:inline-flex;align-items:center;gap:3px;background:#fff;color:var(--muted);border:1px dashed var(--border);padding:2px 7px;border-radius:6px;font-size:11px;cursor:pointer;transition:all .15s;}
+.invoice-tag-empty:hover{color:var(--teal-deep);border-color:var(--aqua);background:var(--aqua-soft);}
+
+.pool-gauge{width:100%;height:9px;background:var(--aqua-soft);border-radius:20px;overflow:hidden;margin-top:8px;}
+.pool-gauge-fill{height:100%;background:linear-gradient(90deg,var(--aqua),var(--teal-deep));border-radius:20px;transition:width .3s;}
+
+/* ---------- Team / service-person tabs ---------- */
+.sp-tabs{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px;}
+.sp-tab{
+  display:flex;align-items:center;gap:7px;padding:9px 14px;border-radius:10px;
+  background:var(--card);border:1.5px solid var(--border);color:var(--ink);
+  font-size:13.5px;font-weight:600;cursor:pointer;transition:all .15s;
+}
+.sp-tab:hover{border-color:var(--aqua);}
+.sp-tab.active{background:var(--teal-deep);border-color:var(--teal-deep);color:#fff;}
+.sp-tab .sp-count{
+  background:rgba(0,0,0,0.08);border-radius:20px;font-size:10.5px;font-weight:700;padding:1px 7px;
+}
+.sp-tab.active .sp-count{background:rgba(255,255,255,0.22);}
+.sp-tab .sp-nophone{color:var(--danger);font-size:12px;}
+.sp-profile{display:flex;align-items:center;justify-content:space-between;gap:14px;flex-wrap:wrap;margin-bottom:18px;}
+.sp-profile .sp-name{font-family:'Space Grotesk';font-size:19px;font-weight:700;}
+.sp-profile .sp-phone{color:var(--muted);font-size:13.5px;margin-top:4px;}
+.sp-profile .sp-phone a{color:var(--teal-deep);font-weight:600;text-decoration:none;}
+.sp-empty{padding:40px 20px;}
+.phone-link{color:var(--teal-deep);text-decoration:none;font-weight:600;}
+.phone-link:hover{text-decoration:underline;}
+.wa-link{text-decoration:none;font-size:14px;}
+
+/* ---------- Table (clients / history) ---------- */
+.table-wrap{background:var(--card);border:1px solid var(--border);border-radius:13px;overflow:hidden;}
+table{width:100%;border-collapse:collapse;font-size:13.5px;}
+th{text-align:left;padding:12px 16px;background:#F0F8F8;color:var(--teal-deep);font-size:11.5px;text-transform:uppercase;letter-spacing:.04em;font-weight:700;}
+td{padding:12px 16px;border-top:1px solid var(--border);vertical-align:top;}
+tr:hover td{background:#FAFEFE;}
+.row-actions{display:flex;gap:6px;flex-wrap:wrap;}
+.empty-state{padding:50px 20px;text-align:center;color:var(--muted);}
+.empty-state .big{font-size:34px;margin-bottom:8px;}
+
+/* ---------- Modal ---------- */
+.modal-overlay{
+  display:none;position:fixed;inset:0;background:rgba(14,42,50,0.55);z-index:100;
+  align-items:center;justify-content:center;padding:16px;backdrop-filter:blur(2px);
+}
+.modal-overlay.open{display:flex;}
+.modal{
+  background:#fff;border-radius:16px;padding:26px 26px 22px;width:100%;max-width:440px;
+  max-height:88vh;overflow-y:auto;
+}
+.modal h3{font-size:18px;margin-bottom:4px;}
+.modal .modal-sub{color:var(--muted);font-size:13px;margin-bottom:18px;}
+.modal-actions{display:flex;gap:10px;margin-top:20px;justify-content:flex-end;flex-wrap:wrap;}
+.skip-row{display:flex;gap:8px;margin-bottom:8px;align-items:center;}
+.skip-row input{flex:1;}
+.skip-row .rm{color:var(--danger);font-size:18px;padding:0 4px;flex-shrink:0;}
+.yn-row{display:flex;gap:10px;margin:18px 0;}
+.yn-row .btn{flex:1;}
+
+/* ---------- Bottom nav (mobile) ---------- */
+.bottom-nav{display:none;}
+
+/* ---------- Toast ---------- */
+#toast{
+  position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(20px);
+  background:var(--ink);color:#fff;padding:12px 20px;border-radius:10px;font-size:13.5px;
+  opacity:0;pointer-events:none;transition:opacity .25s, transform .25s;z-index:200;box-shadow:0 10px 30px rgba(0,0,0,0.25);
+}
+#toast.show{opacity:1;transform:translateX(-50%) translateY(0);}
+
+/* ---------- Responsive ---------- */
+.desktop-only{display:block;}
+.mobile-only{display:none;}
+
+/* ---------- Offline banner ---------- */
+#offline-banner{
+  display:none;align-items:center;justify-content:center;gap:8px;
+  background:var(--danger);color:#fff;font-size:13px;font-weight:600;
+  padding:10px 16px;text-align:center;
+}
+.mobile-topbar{
+  display:none;position:fixed;top:0;left:0;right:0;z-index:60;
+  align-items:center;justify-content:space-between;
+  background:var(--ink);padding:12px 16px;
+}
+.mobile-topbar-brand{display:flex;align-items:center;gap:8px;}
+.mobile-topbar-brand .brand-logo{height:22px;}
+.mobile-topbar-brand .dot{width:9px;height:9px;border-radius:50%;background:var(--aqua);}
+.mobile-topbar-brand span{font-family:'Space Grotesk';font-size:15.5px;font-weight:600;color:#fff;}
+.mobile-topbar-actions{display:flex;align-items:center;gap:6px;}
+.mobile-icon-btn{
+  position:relative;width:36px;height:36px;border-radius:9px;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(255,255,255,0.1);color:#fff;font-size:16px;
+}
+.mobile-icon-btn .badge{
+  position:absolute;top:-4px;right:-4px;background:var(--amber);color:#fff;
+  font-size:9.5px;font-weight:700;padding:1px 5px;border-radius:20px;min-width:15px;
+}
+
+.inline-desc-input {
+  border: 1.5px solid var(--border);
+  background: #FCFEFE;
+  font-size: 11px;
+  font-family: inherit;
+  color: var(--ink);
+  width: 70px;
+  padding: 2px 6px;
+  border-radius: 6px;
+  font-weight: 600;
+  transition: border-color 0.15s ease;
+  margin-left: 4px;
+}
+.inline-desc-input:hover {
+  border-color: var(--muted);
+}
+.inline-desc-input:focus {
+  background: #fff;
+  border-color: var(--aqua);
+  outline: none;
+}
+
+/* ---------- Client cards (mobile) ---------- */
+.client-card{background:var(--card);border:1px solid var(--border);border-radius:13px;padding:16px;margin-bottom:12px;}
+.client-card-top{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;}
+.client-card-name{font-weight:700;font-size:15.5px;}
+.client-card-meta{color:var(--muted);font-size:13px;margin-top:3px;}
+.client-card-row{display:flex;justify-content:space-between;align-items:center;margin-top:12px;padding-top:12px;border-top:1px solid var(--border);}
+.client-card-price{font-family:'IBM Plex Mono',monospace;font-weight:600;font-size:14.5px;color:var(--ink);}
+.client-card-cycle{color:var(--muted);font-size:12.5px;margin-top:6px;}
+.client-card-actions{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px;}
+.client-card-actions .btn{width:100%;}
+.client-card-actions .btn-danger{grid-column:1 / -1;}
+
+@media (max-width:860px){
+  .sidebar{display:none;}
+  .main{padding:16px 14px 90px;max-width:100%;padding-top:72px;}
+  .mobile-topbar{display:flex;}
+  .bottom-nav{
+    display:flex;position:fixed;bottom:0;left:0;right:0;background:#fff;
+    border-top:1px solid var(--border);z-index:50;box-shadow:0 -4px 16px rgba(0,0,0,0.06);
+  }
+  .bottom-nav .nav-item{
+    flex:1;flex-direction:column;gap:2px;color:var(--muted);border-radius:0;padding:10px 4px 8px;
+    font-size:10.5px;text-align:center;
+  }
+  .bottom-nav .nav-item.active{background:none;color:var(--teal-deep);}
+  .bottom-nav .nav-item .ic{font-size:18px;}
+  .bottom-nav .nav-item .badge{position:absolute;margin-left:14px;margin-top:-8px;}
+  .topbar{margin-bottom:16px;}
+  .topbar .btn{width:100%;}
+  .login-card{padding:28px 22px;}
+  .desktop-only{display:none;}
+  .mobile-only{display:block;}
+  .searchbar{max-width:none;}
+  .btn{min-height:40px;}
+  .btn-sm{min-height:34px;padding:8px 14px;}
+  .modal{padding:22px 18px 18px;border-radius:14px 14px 0 0;}
+  .modal-overlay{align-items:flex-end;padding:0;}
+  .modal-overlay .modal{max-height:92vh;}
+  .grid{grid-template-columns:repeat(2,1fr);gap:9px;margin-bottom:18px;}
+  .stat-card{padding:12px 13px;border-radius:11px;}
+  .stat-card .num{font-size:19px;}
+  .stat-card .label{font-size:10.5px;margin-top:2px;line-height:1.25;}
+  #test-mode-fab, #test-mode-banner{display:none !important;}
+}
+.hide-mobile{display:inline;}
+@media (max-width:860px){.hide-mobile{display:none;}}
+
+/* ---------- Payments View Styles ---------- */
+.payments-tabs {
+  display: flex;
+  gap: 8px;
+  border-bottom: 2px solid var(--border);
+  margin-bottom: 20px;
+  padding-bottom: 2px;
+}
+.payments-tab {
+  padding: 10px 16px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--muted);
+  border-radius: 8px 8px 0 0;
+  border: 1px solid transparent;
+  border-bottom: none;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  margin-bottom: -2px;
+}
+.payments-tab:hover {
+  color: var(--teal-deep);
+  background: var(--aqua-soft);
+}
+.payments-tab.active {
+  color: var(--teal-deep);
+  background: #fff;
+  border-color: var(--border);
+  border-bottom: 2px solid #fff;
+}
+.matrix-table-wrap {
+  width: 100%;
+  overflow-x: auto;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 13px;
+  margin-bottom: 20px;
+}
+.matrix-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+.matrix-table th {
+  background: #F0F8F8;
+  color: var(--teal-deep);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: .05em;
+  padding: 14px 16px;
+  text-align: center;
+  font-weight: 700;
+}
+.matrix-table th:first-child {
+  text-align: left;
+  position: sticky;
+  left: 0;
+  background: #F0F8F8;
+  z-index: 2;
+}
+.matrix-table td {
+  padding: 14px 16px;
+  border-top: 1px solid var(--border);
+  text-align: center;
+  vertical-align: middle;
+}
+.matrix-table td:first-child {
+  text-align: left;
+  font-weight: 600;
+  position: sticky;
+  left: 0;
+  background: #fff;
+  z-index: 2;
+  box-shadow: 2px 0 5px rgba(0,0,0,0.02);
+}
+.matrix-table tr:hover td:first-child {
+  background: #FAFEFE;
+}
+.cell-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  font-size: 14px;
+  font-weight: 700;
+  transition: transform 0.1s;
+}
+.cell-badge:hover {
+  transform: scale(1.1);
+}
+.cell-badge.done {
+  background: #E5F6EA;
+  color: #2E8B4F;
+  border: 1.5px solid #b7e8c7;
+}
+.cell-badge.payment-pending {
+  background: var(--danger-soft);
+  color: var(--danger);
+  border: 1.5px solid #f7c5c2;
+  cursor: pointer;
+}
+.cell-badge.invoice-pending {
+  background: var(--amber-soft);
+  color: #9a6a17;
+  border: 1.5px solid #f9dfb6;
+  cursor: pointer;
+}
+.cell-badge.in-progress {
+  background: var(--aqua-soft);
+  color: var(--teal-deep);
+  border: 1.5px solid #bcdbf0;
+}
+.cell-badge.none {
+  background: #f1f5f9;
+  color: #94a3b8;
+  border: 1px dashed #cbd5e1;
+}
+.aging-badge {
+  display: inline-block;
+  padding: 3px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+}
+.aging-badge.danger {
+  background: var(--danger-soft);
+  color: var(--danger);
+}
+.aging-badge.warning {
+  background: var(--amber-soft);
+  color: #9a6a17;
+}
+.aging-badge.info {
+  background: var(--aqua-soft);
+  color: var(--teal-deep);
+}
+.ledger-client-group {
+  margin-bottom: 20px;
+}
+.ledger-client-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  background: var(--card);
+  border: 1.5px solid var(--border);
+  padding: 16px 20px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.ledger-client-header:hover {
+  background: var(--aqua-soft);
+}
+.ledger-client-title {
+  font-size: 15px;
+  font-weight: 700;
+}
+.ledger-client-summary {
+  display: flex;
+  gap: 16px;
+  font-size: 13px;
+}
+.ledger-client-summary span {
+  font-weight: 600;
+}
+.ledger-client-details {
+  display: none;
+  background: #FCFEFE;
+  border: 1.5px solid var(--border);
+  border-top: none;
+  border-radius: 0 0 12px 12px;
+  padding: 16px;
+  margin-top: -4px;
+}
+.ledger-client-group.open .ledger-client-header {
+  border-radius: 12px 12px 0 0;
+}
+.ledger-client-group.open .ledger-client-details {
+  display: block;
+}
+</style>
+</head>
+<body>
+<!--
+  LOGO: drop a file named "logo.png" in the same folder as this HTML file.
+  It will appear automatically on the login screen and sidebar.
+  If no logo.png is found, it falls back to the plain Waterqo wordmark.
+-->
+
+<!-- ================= LOGIN ================= -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-brand">
+      <img src="logo.png" alt="Waterqo logo" class="brand-logo" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+      <div class="dot" style="display:none;"></div>
+      <h1>Waterqo</h1>
+    </div>
+    <div class="login-sub">Service cycle tracker — sign in to continue</div>
+    <div class="field">
+      <label>Email</label>
+      <input type="email" id="login-email" placeholder="you@waterqo.com" autocomplete="username">
+    </div>
+    <div class="field">
+      <label>Password</label>
+      <input type="password" id="login-password" placeholder="••••••••" autocomplete="current-password">
+    </div>
+    <button class="btn btn-primary btn-block" id="login-btn">Sign in</button>
+    <div id="login-error"></div>
+    <div style="margin-top:16px;font-size:11.5px;color:var(--muted);">Accounts are created by an admin in the Firebase console — there is no public sign-up.</div>
+  </div>
+</div>
+
+<!-- ================= APP ================= -->
+<div id="app">
+  <div id="offline-banner">⚠ You're offline — changes will sync once you're back online.</div>
+  <div class="mobile-topbar">
+    <div class="mobile-topbar-brand">
+      <img src="logo.png" alt="Waterqo logo" class="brand-logo" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+      <div class="dot" style="display:none;"></div>
+      <span>Waterqo</span>
+    </div>
+    <div class="mobile-topbar-actions">
+      <button class="mobile-icon-btn" id="mobile-notif-btn" title="Notifications">⚑<span class="badge notif-badge" style="display:none;">0</span></button>
+      <button class="mobile-icon-btn" id="mobile-logout-btn" title="Log out">⏻</button>
+    </div>
+  </div>
+  <div class="shell">
+    <div class="sidebar">
+      <div class="brand">
+        <img src="logo.png" alt="Waterqo logo" class="brand-logo" onerror="this.style.display='none';this.nextElementSibling.style.display='block';">
+        <div class="dot" style="display:none;"></div>
+        <span>Waterqo</span>
+      </div>
+      <div class="nav-item active" data-view="dashboard"><span>◈</span> Dashboard</div>
+      <div class="nav-item" data-view="payments"><span>⛁</span> Payments</div>
+      <div class="nav-item" data-view="clients"><span>◇</span> Clients</div>
+      <div class="nav-item" data-view="entries"><span>▤</span> Entries</div>
+      <div class="nav-item" data-view="notifications"><span>⚑</span> Notifications<span class="badge notif-badge" style="display:none;">0</span></div>
+      <div class="nav-item" data-view="team"><span>☺</span> Team</div>
+      <div class="sidebar-footer">
+        <div class="user-email" id="sidebar-email"></div>
+        <button class="btn btn-outline btn-block btn-sm" id="logout-btn">Log out</button>
+      </div>
+    </div>
+
+    <div class="main">
+      <!-- ---- DASHBOARD ---- -->
+      <div id="view-dashboard">
+        <div class="topbar">
+          <div>
+            <h2>Dashboard</h2>
+            <div class="sub" id="today-label"></div>
+          </div>
+          <button class="btn btn-aqua" id="add-client-btn-top">+ New client</button>
+        </div>
+        <div class="grid" id="stat-cards"></div>
+
+        <div id="dash-alerts"></div>
+      </div>
+
+      <!-- ---- CLIENTS ---- -->
+      <div id="view-clients" style="display:none;">
+        <div class="topbar">
+          <div>
+            <h2>Clients</h2>
+            <div class="sub">Manage client accounts and service pricing</div>
+          </div>
+          <button class="btn btn-outline" id="export-clients-btn">⭳ Export CSV</button>
+          <button class="btn btn-aqua" id="add-client-btn">+ New client</button>
+        </div>
+        <div class="searchbar" style="margin-bottom:16px;">
+          <input type="text" id="client-search" placeholder="Search by client, phone or service person...">
+        </div>
+        <div class="table-wrap desktop-only"><table id="clients-table">
+          <thead><tr><th>Client</th><th>Phone</th><th>Service person</th><th>Agreed price</th><th>Status</th><th>Active cycle</th><th></th></tr></thead>
+          <tbody id="clients-tbody"></tbody>
+        </table></div>
+        <div class="mobile-only" id="clients-cards"></div>
+      </div>
+
+      <!-- ---- ENTRIES ---- -->
+      <div id="view-entries" style="display:none;">
+        <div class="topbar">
+          <div>
+            <h2>Service Entries</h2>
+            <div class="sub">Manage and audit all service cycle records with full CRUD controls</div>
+          </div>
+          <button class="btn btn-aqua" id="add-entry-btn">+ New entry</button>
+        </div>
+        <div class="searchbar" style="margin-bottom:16px; display:flex; gap:10px; flex-wrap:wrap;">
+          <input type="text" id="entry-search" placeholder="Search by client or description..." style="flex:2; min-width:200px;">
+          <select id="entry-filter-status" style="flex:1; min-width:130px;">
+            <option value="">All Statuses</option>
+            <option value="in_progress">In Progress</option>
+            <option value="invoice_pending">Invoice Pending</option>
+            <option value="payment_pending">Payment Pending</option>
+            <option value="completed">Completed</option>
+          </select>
+          <select id="entry-filter-sp" style="flex:1; min-width:150px;">
+            <option value="">All Service Persons</option>
+          </select>
+        </div>
+        <div class="table-wrap desktop-only">
+          <table id="entries-table">
+            <thead>
+              <tr>
+                <th>Client</th>
+                <th>Description</th>
+                <th>Service Person</th>
+                <th>Cycle Start → End</th>
+                <th>Completed</th>
+                <th>Price</th>
+                <th>Invoice #</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody id="entries-tbody"></tbody>
+          </table>
+        </div>
+        <div class="mobile-only" id="entries-cards"></div>
+      </div>
+
+      <!-- ---- TEAM (service persons) ---- -->
+      <div id="view-team" style="display:none;">
+        <div class="topbar">
+          <div>
+            <h2>Team</h2>
+            <div class="sub">Track each service person and the clients assigned to them</div>
+          </div>
+          <button class="btn btn-aqua" id="add-staff-btn">+ New service person</button>
+        </div>
+        <div class="sp-tabs" id="sp-tabs"></div>
+        <div id="sp-content"></div>
+      </div>
+
+      <!-- History view removed -->
+
+      <!-- ---- PAYMENTS ---- -->
+      <div id="view-payments" style="display:none;">
+        <div class="topbar">
+          <div>
+            <h2>Payments &amp; Billing Tracker</h2>
+            <div class="sub">Track client credit, aging bills, and monthly payment records</div>
+          </div>
+        </div>
+
+        <!-- Payments Stats Grid -->
+        <div class="grid" id="payments-stat-cards">
+          <div class="stat-card accent-danger">
+            <div class="num mono" id="pay-stat-total-unpaid">Rs 0</div>
+            <div class="label">Total Outstanding Balance</div>
+          </div>
+          <div class="stat-card accent-amber">
+            <div class="num mono" id="pay-stat-awaiting-invoice">Rs 0</div>
+            <div class="label">Completed - Invoice Pending</div>
+          </div>
+          <div class="stat-card accent-danger">
+            <div class="num mono" id="pay-stat-awaiting-payment">Rs 0</div>
+            <div class="label">Invoiced - Payment Pending</div>
+          </div>
+          <div class="stat-card accent-aqua">
+            <div class="num mono" id="pay-stat-month-revenue">Rs 0</div>
+            <div class="label">Collected (Current Month)</div>
+          </div>
+        </div>
+
+        <!-- Section sub-tabs -->
+        <div class="payments-tabs">
+          <div class="payments-tab active" data-subtab="outstanding">Outstanding Bills (Aging)</div>
+          <div class="payments-tab" data-subtab="matrix">Monthly Payment Matrix</div>
+          <div class="payments-tab" data-subtab="ledgers">Client Ledgers</div>
+        </div>
+
+        <!-- Subtab Content: Outstanding Bills -->
+        <div id="pay-subtab-outstanding">
+          <div class="card" style="padding:14px 16px;margin-bottom:16px;">
+            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+              <div class="searchbar" style="flex:2;min-width:200px;margin-bottom:0;">
+                <input type="text" id="pay-outstanding-search" placeholder="Search by client or service person...">
+              </div>
+              <select id="pay-outstanding-age-filter" style="flex:1;min-width:150px;padding:10px 12px;border-radius:9px;border:1.5px solid var(--border);font-size:13.5px;background:#fff;">
+                <option value="">All outstanding bills</option>
+                <option value="overdue_30">Overdue 30+ days</option>
+                <option value="overdue_14">Overdue 14+ days</option>
+                <option value="awaiting_invoice">Awaiting Invoice</option>
+                <option value="awaiting_payment">Awaiting Payment</option>
+              </select>
+            </div>
+          </div>
+          <div id="pay-outstanding-list"></div>
+        </div>
+
+        <!-- Subtab Content: Matrix -->
+        <div id="pay-subtab-matrix" style="display:none;">
+          <div style="margin-bottom: 12px; font-size: 13px; color: var(--muted); display: flex; gap: 20px; flex-wrap: wrap;">
+            <span><strong>Legend:</strong></span>
+            <span><span style="color:#2E8B4F;font-weight:bold;">✓</span> Paid (Completed)</span>
+            <span><span style="color:#9a6a17;font-weight:bold;">🧾</span> Invoiced (Awaiting payment)</span>
+            <span><span style="color:#D9534F;font-weight:bold;">⚠</span> Review Due / Invoice Pending</span>
+            <span><span style="color:var(--teal-deep);font-weight:bold;">▶</span> In Progress</span>
+            <span><span style="color:#94a3b8;font-weight:bold;">—</span> No cycle</span>
+          </div>
+          <div class="matrix-table-wrap">
+            <table class="matrix-table">
+              <thead>
+                <tr id="pay-matrix-headers">
+                  <th>Client</th>
+                  <!-- Months will be populated here -->
+                </tr>
+              </thead>
+              <tbody id="pay-matrix-tbody">
+                <!-- Clients and monthly cells populated here -->
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+        <!-- Subtab Content: Ledgers -->
+        <div id="pay-subtab-ledgers" style="display:none;">
+          <div class="card" style="padding:14px 16px;margin-bottom:16px;">
+            <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+              <div class="searchbar" style="flex:2;min-width:200px;margin-bottom:0;">
+                <input type="text" id="pay-ledger-search" placeholder="Search client ledger...">
+              </div>
+              <select id="pay-ledger-balance-filter" style="flex:1;min-width:150px;padding:10px 12px;border-radius:9px;border:1.5px solid var(--border);font-size:13.5px;background:#fff;">
+                <option value="">All clients</option>
+                <option value="has_balance">Has Outstanding Balance</option>
+              </select>
+            </div>
+          </div>
+          <div id="pay-ledgers-list"></div>
+        </div>
+      </div>
+
+      <!-- ---- NOTIFICATIONS ---- -->
+      <div id="view-notifications" style="display:none;">
+        <div class="topbar">
+          <div>
+            <h2>Notifications</h2>
+            <div class="sub">Everything waiting on you, in one place</div>
+          </div>
+        </div>
+        <div id="notif-list"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom nav for mobile -->
+  <div class="bottom-nav">
+    <div class="nav-item active" data-view="dashboard"><div class="ic">◈</div>Dashboard</div>
+    <div class="nav-item" data-view="payments"><div class="ic">⛁</div>Payments</div>
+    <div class="nav-item" data-view="clients"><div class="ic">◇</div>Clients</div>
+    <div class="nav-item" data-view="entries"><div class="ic">▤</div>Entries</div>
+    <div class="nav-item" data-view="notifications"><div class="ic">⚑</div>Notifications<span class="badge notif-badge" style="display:none;">0</span></div>
+    <div class="nav-item" data-view="team"><div class="ic">☺</div>Team</div>
+  </div>
+</div>
+
+<!-- ================= MODALS ================= -->
+
+<!-- Create / Edit Entry Modal -->
+<div class="modal-overlay" id="modal-entry">
+  <div class="modal" style="max-width: 500px;">
+    <h3 id="entry-modal-title">New Entry</h3>
+    <div class="modal-sub">Manually create or edit a service cycle record.</div>
+    <input type="hidden" id="entry-id">
+    
+    <div class="field">
+      <label>Client</label>
+      <select id="entry-client-id">
+        <option value="">Select client</option>
+      </select>
+    </div>
+    
+    <div class="field">
+      <label>Cycle Description (Month)</label>
+      <input type="text" id="entry-description" placeholder="e.g. Aug">
+    </div>
+    
+    <div class="field">
+      <label>Service Person</label>
+      <select id="entry-service-person">
+        <option value="">Select service person</option>
+      </select>
+    </div>
+    
+    <div class="field">
+      <label>Agreed Price (LKR)</label>
+      <input type="number" id="entry-price" placeholder="e.g. 8000">
+    </div>
+    
+    <div class="field">
+      <label>Cycle Start Date</label>
+      <input type="date" id="entry-start">
+    </div>
+    
+    <div class="field">
+      <label>Cycle End Date (optional)</label>
+      <input type="date" id="entry-end">
+    </div>
+    
+    <div class="field">
+      <label>Status</label>
+      <select id="entry-status">
+        <option value="in_progress">In Progress</option>
+        <option value="invoice_pending">Invoice Pending (Done)</option>
+        <option value="payment_pending">Payment Pending (Invoiced)</option>
+        <option value="completed">Completed (Paid)</option>
+      </select>
+    </div>
+    
+    <div class="field">
+      <label>Services Completed (0 to 8)</label>
+      <input type="number" id="entry-completed" min="0" max="8" placeholder="e.g. 8">
+    </div>
+    
+    <div class="field" id="entry-invoice-number-field">
+      <label>Invoice Number</label>
+      <input type="text" id="entry-invoice-number" placeholder="e.g. INV-1001" autocomplete="off">
+    </div>
+    
+    <div class="field" id="entry-invoice-sent-field">
+      <label>Invoice Sent Date</label>
+      <input type="date" id="entry-invoice-sent">
+    </div>
+    
+    <div class="field" id="entry-payment-received-field">
+      <label>Payment Received Date</label>
+      <input type="date" id="entry-payment-received">
+    </div>
+    
+    <div class="modal-actions">
+      <button class="btn btn-outline" data-close>Cancel</button>
+      <button class="btn btn-aqua" id="save-entry-btn">Save Entry</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit client -->
+<div class="modal-overlay" id="modal-client">
+  <div class="modal">
+    <h3 id="client-modal-title">New client</h3>
+    <div class="modal-sub">Every new client starts an 8-service cycle from the date you choose.</div>
+    <input type="hidden" id="client-id">
+    <div class="field"><label>Client name</label><input type="text" id="client-name" placeholder="e.g. Mrs. Perera - Nawala"></div>
+    <div class="field"><label>Client phone number</label><input type="tel" id="client-phone" placeholder="e.g. 077 123 4567"></div>
+    <div class="field"><label>Agreed price (LKR)</label><input type="number" id="client-price" placeholder="e.g. 8000"></div>
+    <div class="field">
+      <label>Service person</label>
+      <div style="display:flex;gap:8px;">
+        <select id="client-service-person" style="flex:1;"><option value="">Select service person</option></select>
+        <button type="button" class="btn btn-outline btn-sm" id="client-new-sp-btn" style="flex-shrink:0;">+ New</button>
+      </div>
+    </div>
+    <div class="field" id="cycle-start-field"><label>Current ongoing month starts on</label><input type="date" id="client-cycle-start"></div>
+    <div class="field" id="cycle-desc-field"><label>Cycle description (e.g. month)</label><input type="text" id="client-cycle-desc" placeholder="e.g. Feb"></div>
+    <div class="field" id="cycle-end-field">
+      <label>End date <span style="text-transform:none;font-weight:500;">(optional — leave empty to use the normal 1-month cycle)</span></label>
+      <input type="date" id="client-cycle-end">
+      <label style="display:flex;align-items:center;gap:6px;margin-top:8px;text-transform:none;font-weight:500;font-size:12.5px;color:var(--muted);">
+        <input type="checkbox" id="client-eom-toggle" style="width:auto;"> End of month (auto-fills the last day of the start month — skipped if that would make the cycle 5+ weeks)
+      </label>
+    </div>
+    <div class="field"><label>Notes (optional)</label><textarea id="client-notes" rows="2" placeholder="e.g. Gate code 4521, dog on premises, prefers morning visits"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" data-close>Cancel</button>
+      <button class="btn btn-aqua" id="save-client-btn">Save client</button>
+    </div>
+  </div>
+</div>
+
+<!-- 4-week review -->
+<div class="modal-overlay" id="modal-review">
+  <div class="modal">
+    <h3>4-week check</h3>
+    <div class="modal-sub" id="review-sub"></div>
+    <div style="font-weight:600;font-size:14px;margin-top:10px;">Were all 8 services completed by the service person?</div>
+    <div class="yn-row">
+      <button class="btn btn-aqua" id="review-yes">Yes, all 8 done</button>
+      <button class="btn btn-outline" id="review-no">No, some skipped</button>
+    </div>
+    <div id="review-skip-section" style="display:none;">
+      <div class="field"><label>How many services were completed?</label><input type="number" id="review-completed-count" min="0" max="8" placeholder="0-8"></div>
+      <label style="font-size:12px;font-weight:600;color:var(--teal-deep);text-transform:uppercase;letter-spacing:.04em;">Skipped days &amp; reasons</label>
+      <div id="skip-rows" style="margin-top:8px;"></div>
+      <button class="btn btn-outline btn-sm" id="add-skip-row" style="margin-top:4px;">+ Add skipped day</button>
+      <div class="modal-actions">
+        <button class="btn btn-outline" data-close>Cancel</button>
+        <button class="btn btn-aqua" id="save-review-btn">Save &amp; continue</button>
+      </div>
+    </div>
+    <div class="modal-actions" id="review-close-only">
+      <button class="btn btn-outline" data-close>Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Send invoice confirm -->
+<div class="modal-overlay" id="modal-invoice">
+  <div class="modal">
+    <h3 id="invoice-modal-title">Send invoice</h3>
+    <div class="modal-sub" id="invoice-sub"></div>
+    <div class="field" style="margin-top:12px;">
+      <label>Invoice Number</label>
+      <input type="text" id="invoice-number" placeholder="e.g. INV-1001" autocomplete="off">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" data-close>Cancel</button>
+      <button class="btn btn-amber" id="confirm-invoice-btn">Confirm invoice sent</button>
+    </div>
+  </div>
+</div>
+
+<!-- Payment confirm -->
+<div class="modal-overlay" id="modal-payment">
+  <div class="modal">
+    <h3>Confirm payment</h3>
+    <div class="modal-sub" id="payment-sub"></div>
+    <div class="field" style="margin-top:12px;">
+      <label>Invoice Number (optional)</label>
+      <input type="text" id="payment-invoice-number" placeholder="e.g. INV-1001" autocomplete="off">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" data-close>Cancel</button>
+      <button class="btn btn-primary" id="confirm-payment-btn">Payment received</button>
+    </div>
+  </div>
+</div>
+
+<!-- Quick Invoice Number Edit Modal -->
+<div class="modal-overlay" id="modal-invoice-number">
+  <div class="modal" style="max-width:420px;">
+    <h3>Invoice Number</h3>
+    <div class="modal-sub" id="invoice-number-sub">Update invoice number for this cycle.</div>
+    <input type="hidden" id="quick-inv-cycle-id">
+    <div class="field" style="margin-top:12px;">
+      <label>Invoice Number</label>
+      <input type="text" id="quick-invoice-number" placeholder="e.g. INV-1001" autocomplete="off">
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" data-close>Cancel</button>
+      <button class="btn btn-aqua" id="save-quick-inv-btn">Save Invoice #</button>
+    </div>
+  </div>
+</div>
+
+<!-- Mark as called -->
+<div class="modal-overlay" id="modal-call-log">
+  <div class="modal">
+    <h3>Log this call</h3>
+    <div class="modal-sub" id="call-log-sub"></div>
+    <input type="hidden" id="call-log-cycle-id">
+    <div class="field"><label>Note (optional)</label><textarea id="call-log-note" rows="3" placeholder="e.g. Said they'll pay Friday"></textarea></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" data-close>Cancel</button>
+      <button class="btn btn-aqua" id="save-call-log-btn">Save</button>
+    </div>
+  </div>
+</div>
+
+<!-- Start next cycle -->
+<div class="modal-overlay" id="modal-next-cycle">
+  <div class="modal">
+    <h3>Start next cycle?</h3>
+    <div class="modal-sub" id="next-cycle-sub"></div>
+    <div class="field"><label>Next cycle start date</label><input type="date" id="next-cycle-start"></div>
+    <div class="field" id="next-cycle-desc-field"><label>Cycle description (e.g. month)</label><input type="text" id="next-cycle-desc" placeholder="e.g. Feb"></div>
+    <div class="field">
+      <label>End date <span style="text-transform:none;font-weight:500;">(optional — leave empty to use the normal 1-month cycle)</span></label>
+      <input type="date" id="next-cycle-end">
+      <label style="display:flex;align-items:center;gap:6px;margin-top:8px;text-transform:none;font-weight:500;font-size:12.5px;color:var(--muted);">
+        <input type="checkbox" id="next-eom-toggle" style="width:auto;"> End of month (auto-fills the last day of the start month — skipped if that would make the cycle 5+ weeks)
+      </label>
+    </div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" data-close>Not now</button>
+      <button class="btn btn-aqua" id="confirm-next-cycle-btn">Start cycle</button>
+    </div>
+  </div>
+</div>
+
+<!-- Client / cycle detail -->
+<div class="modal-overlay" id="modal-detail">
+  <div class="modal" style="max-width:500px;">
+    <h3 id="detail-title"></h3>
+    <div class="modal-sub" id="detail-sub"></div>
+    <div id="detail-body"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" data-close>Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- Add/Edit service person -->
+<div class="modal-overlay" id="modal-staff">
+  <div class="modal">
+    <h3 id="staff-modal-title">New service person</h3>
+    <input type="hidden" id="staff-id">
+    <input type="hidden" id="staff-original-name">
+    <div class="field"><label>Name</label><input type="text" id="staff-name" placeholder="e.g. Kasun"></div>
+    <div class="field"><label>Phone number</label><input type="tel" id="staff-phone" placeholder="e.g. 077 123 4567"></div>
+    <div class="modal-actions">
+      <button class="btn btn-outline" data-close>Cancel</button>
+      <button class="btn btn-aqua" id="save-staff-btn">Save</button>
+    </div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<!-- ================================================================ -->
+<!-- TEST MODE — delete this whole block (down to END TEST MODE) to remove -->
+<!-- ================================================================ -->
+<div id="test-mode-banner" style="display:none;position:fixed;top:0;left:0;right:0;z-index:150;background:#1a1a1a;color:#FFD166;font-size:12.5px;font-weight:600;text-align:center;padding:8px 12px;cursor:pointer;">
+  🧪 TEST MODE — app thinks today is <span id="test-mode-banner-date"></span>. Tap to turn off.
+</div>
+<button id="test-mode-fab" title="Test mode" style="position:fixed;bottom:24px;right:20px;z-index:120;width:46px;height:46px;border-radius:50%;background:#1a1a1a;color:#FFD166;font-size:19px;box-shadow:0 6px 18px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;">🧪</button>
+<div class="modal-overlay" id="modal-test">
+  <div class="modal">
+    <h3>🧪 Test mode</h3>
+    <div class="modal-sub">Simulate a different "today" so you can trigger the 4-week review, invoice, and payment reminders instantly — without waiting for real time to pass. This only affects what's shown in your browser; it doesn't change any dates saved in the database, and resets automatically if you reload the page.</div>
+    <div class="field">
+      <label>Pretend today is</label>
+      <input type="date" id="test-mode-date">
+    </div>
+    <div class="modal-actions" style="justify-content:space-between;">
+      <button class="btn btn-outline" id="test-mode-clear">Use real date</button>
+      <button class="btn btn-primary" id="test-mode-apply">Apply</button>
+    </div>
+    <div class="modal-actions" style="justify-content:flex-start;margin-top:2px;">
+      <button class="btn btn-outline" data-close>Close</button>
+    </div>
+  </div>
+</div>
+<!-- ================================================================ -->
+<!-- END TEST MODE -->
+<!-- ================================================================ -->
+
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+import {
+  getAuth, signInWithEmailAndPassword, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+import {
+  getFirestore, collection, doc, addDoc, updateDoc, deleteDoc,
+  onSnapshot, serverTimestamp, query, orderBy
+} from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyCehT8GuPFiaTubc6EsNTZx5UK6aR5tEU8",
+  authDomain: "poolservice-cef5b.firebaseapp.com",
+  projectId: "poolservice-cef5b",
+  storageBucket: "poolservice-cef5b.firebasestorage.app",
+  messagingSenderId: "983028948649",
+  appId: "1:983028948649:web:ce4a211ca9f0a9319693b8",
+  measurementId: "G-0JTV222P19"
+};
+
+const fbApp = initializeApp(firebaseConfig);
+const auth = getAuth(fbApp);
+const db = getFirestore(fbApp);
+setPersistence(auth, browserLocalPersistence).catch(()=>{});
+
+const CLIENTS = "waterqo_clients";
+const CYCLES = "waterqo_cycles";
+const STAFF = "waterqo_staff";
+const TARGET_SERVICES = 8;
+const CYCLE_LENGTH_DAYS = 28; // 4 weeks including start week
+
+/* ---------------------------------------------------------------------- */
+/* Utilities                                                               */
+/* ---------------------------------------------------------------------- */
+const $ = (sel) => document.querySelector(sel);
+const $$ = (sel) => Array.from(document.querySelectorAll(sel));
+
+// TEST MODE — remove `testDateOverride` and the `||` fallback below to strip test mode from todayStr()
+let testDateOverride = null;
+function todayStr(){
+  if(testDateOverride) return testDateOverride;
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth()+1).padStart(2,"0");
+  const day = String(d.getDate()).padStart(2,"0");
+  return `${y}-${m}-${day}`;
+}
+function addDays(dateStr, n){
+  const [y,m,d] = dateStr.split("-").map(Number);
+  const dt = new Date(Date.UTC(y, m-1, d));
+  dt.setUTCDate(dt.getUTCDate() + n);
+  return dt.toISOString().slice(0,10);
+}
+function addMonths(dateStr, n){
+  const [y,m,d] = dateStr.split("-").map(Number);
+  const dt = new Date(Date.UTC(y, m-1, d));
+  dt.setUTCMonth(dt.getUTCMonth() + n);
+  return dt.toISOString().slice(0,10);
+}
+function getShortMonthName(dateStr){
+  if(!dateStr) return "";
+  const parts = dateStr.split("-");
+  if(parts.length < 2) return "";
+  const m = Number(parts[1]);
+  const monthNamesShort = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  return monthNamesShort[m - 1] || "";
+}
+function fmtDate(dateStr){
+  if(!dateStr) return "—";
+  const d = new Date(dateStr + "T00:00:00");
+  return d.toLocaleDateString("en-GB",{day:"numeric",month:"short",year:"numeric"});
+}
+function fmtMoney(n){
+  if(n === undefined || n === null || isNaN(n)) return "Rs 0";
+  return "Rs " + Number(n).toLocaleString("en-LK");
+}
+function daysUntil(dateStr){
+  const today = new Date(todayStr()+"T00:00:00");
+  const target = new Date(dateStr+"T00:00:00");
+  return Math.round((target - today) / 86400000);
+}
+function toast(msg){
+  const t = $("#toast");
+  t.textContent = msg;
+  t.classList.add("show");
+  clearTimeout(toast._timer);
+  toast._timer = setTimeout(()=>t.classList.remove("show"), 2600);
+}
+function esc(str){
+  const d = document.createElement("div");
+  d.textContent = str ?? "";
+  return d.innerHTML;
+}
+function sanitizeHtml(dirty){
+  if(dirty === null || dirty === undefined) return "";
+  if(typeof DOMPurify !== "undefined" && DOMPurify.sanitize){
+    return DOMPurify.sanitize(String(dirty));
+  }
+  return String(dirty);
+}
+function setHtml(target, html){
+  const el = (typeof target === "string") ? $(target) : target;
+  if(el) el.innerHTML = sanitizeHtml(html);
+}
+
+/* ---- Phone / WhatsApp helpers ---- */
+function toWhatsAppDigits(phone){
+  let digits = (phone || "").replace(/\D/g, "");
+  if(!digits) return null;
+  if(digits.startsWith("0")) digits = "94" + digits.slice(1);
+  else if(!digits.startsWith("94")) digits = "94" + digits;
+  return digits;
+}
+function waLink(phone, message){
+  const digits = toWhatsAppDigits(phone);
+  if(!digits) return null;
+  return `https://wa.me/${digits}?text=${encodeURIComponent(message)}`;
+}
+function paymentReminderMessage(clientName, amount){
+  return `Hi ${clientName}, this is a friendly reminder from Waterqo Pools that payment of ${amount} for your pool service is still pending. Could you kindly arrange it at your earliest convenience? Thank you!`;
+}
+// Renders phone as a tel: link plus a small WhatsApp icon link, or "—" if no phone saved.
+function phoneCell(phone, clientName, amount){
+  if(!phone) return "—";
+  const wa = waLink(phone, paymentReminderMessage(clientName || "", amount != null ? fmtMoney(amount) : ""));
+  return `<a class="phone-link" href="tel:${esc(phone)}">${esc(phone)}</a>${wa ? ` <a class="wa-link" href="${wa}" target="_blank" rel="noopener" title="Message on WhatsApp">💬</a>` : ""}`;
+}
+
+/* ---- CSV export ---- */
+function csvEscape(val){
+  let s = (val === null || val === undefined) ? "" : String(val);
+  // Neutralize spreadsheet formula injection (=, +, -, @, tab, cr)
+  if(/^[=+\-@\t\r]/.test(s)){
+    s = "'" + s;
+  }
+  return /[",\n]/.test(s) ? `"${s.replace(/"/g,'""')}"` : s;
+}
+function downloadCSV(filename, headers, rows){
+  const lines = [headers, ...rows].map(r => r.map(csvEscape).join(","));
+  const blob = new Blob(["\uFEFF" + lines.join("\r\n")], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url; a.download = filename;
+  document.body.appendChild(a); a.click(); a.remove();
+  URL.revokeObjectURL(url);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Auth, Brute-Force Protection & Security Watchdogs                      */
+/* ---------------------------------------------------------------------- */
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOCKOUT_DURATION_MS = 120 * 1000; // 2 minutes lockout
+let failedLoginAttempts = 0;
+let lockoutEndTime = 0;
+let lockoutTimer = null;
+
+function updateLockoutUI(){
+  const now = Date.now();
+  const btn = $("#login-btn");
+  const emailInput = $("#login-email");
+  const pwInput = $("#login-password");
+  const errEl = $("#login-error");
+
+  if(lockoutEndTime > now){
+    const remainingSec = Math.ceil((lockoutEndTime - now) / 1000);
+    btn.disabled = true;
+    emailInput.disabled = true;
+    pwInput.disabled = true;
+    btn.textContent = `Locked (${remainingSec}s)`;
+    btn.style.opacity = "0.6";
+    btn.style.cursor = "not-allowed";
+    errEl.textContent = `Too many failed attempts. Sign-in temporarily locked for ${remainingSec}s to protect this system.`;
+    errEl.style.display = "block";
+  } else {
+    if(lockoutTimer){
+      clearInterval(lockoutTimer);
+      lockoutTimer = null;
+    }
+    lockoutEndTime = 0;
+    failedLoginAttempts = 0;
+    btn.disabled = false;
+    emailInput.disabled = false;
+    pwInput.disabled = false;
+    btn.textContent = "Sign in";
+    btn.style.opacity = "1";
+    btn.style.cursor = "pointer";
+    if(errEl.textContent.includes("temporarily locked")){
+      errEl.style.display = "none";
+    }
+  }
+}
+
+function triggerLockout(){
+  lockoutEndTime = Date.now() + LOCKOUT_DURATION_MS;
+  updateLockoutUI();
+  if(lockoutTimer) clearInterval(lockoutTimer);
+  lockoutTimer = setInterval(updateLockoutUI, 1000);
+}
+
+$("#login-btn").addEventListener("click", doLogin);
+$("#login-password").addEventListener("keydown", (e)=>{ if(e.key==="Enter") doLogin(); });
+
+function doLogin(){
+  if(lockoutEndTime > Date.now()){
+    return;
+  }
+  const email = $("#login-email").value.trim();
+  const pw = $("#login-password").value;
+  const errEl = $("#login-error");
+  errEl.style.display = "none";
+  if(!email || !pw){
+    errEl.textContent = "Enter both email and password.";
+    errEl.style.display = "block";
+    return;
+  }
+  signInWithEmailAndPassword(auth, email, pw)
+    .then(()=>{
+      failedLoginAttempts = 0;
+      lockoutEndTime = 0;
+      if(lockoutTimer){ clearInterval(lockoutTimer); lockoutTimer = null; }
+    })
+    .catch((err)=>{
+      failedLoginAttempts++;
+      if(failedLoginAttempts >= MAX_LOGIN_ATTEMPTS){
+        triggerLockout();
+      } else {
+        const remaining = MAX_LOGIN_ATTEMPTS - failedLoginAttempts;
+        const msg = (err.code === "auth/invalid-credential" || err.code === "auth/wrong-password" || err.code === "auth/user-not-found")
+          ? "Invalid email or password."
+          : err.message;
+        errEl.textContent = `Sign-in failed: ${msg} (${remaining} attempt${remaining === 1 ? "" : "s"} remaining before temporary lockout.)`;
+        errEl.style.display = "block";
+      }
+    });
+}
+
+/* ---------------------------------------------------------------------- */
+/* Logout & Sensitive Memory Sanitization                                 */
+/* ---------------------------------------------------------------------- */
+let unsubClients = null;
+let unsubCycles = null;
+let unsubStaff = null;
+
+function doLogout(){
+  // 1. Unsubscribe real-time Firestore listeners
+  if(unsubClients){ unsubClients(); unsubClients = null; }
+  if(unsubCycles){ unsubCycles(); unsubCycles = null; }
+  if(unsubStaff){ unsubStaff(); unsubStaff = null; }
+  listenersStarted = false;
+
+  // 2. Purge sensitive in-memory customer and financial datasets
+  clients = [];
+  cycles = [];
+  staff = [];
+  dashOpenSections.clear();
+  ledgerOpenClients.clear();
+  activeServicePerson = null;
+  pendingServicePersonSelect = null;
+  reviewCycleId = null;
+  invoiceCycleId = null;
+  paymentCycleId = null;
+  nextCycleClient = null;
+
+  // 3. Wipe input fields and UI security states
+  const pwInput = $("#login-password");
+  if(pwInput) pwInput.value = "";
+  const errEl = $("#login-error");
+  if(errEl && !lockoutEndTime){
+    errEl.textContent = "";
+    errEl.style.display = "none";
+  }
+
+  // 4. Sign out from Firebase Auth
+  signOut(auth).catch(()=>{});
+}
+$("#logout-btn").addEventListener("click", doLogout);
+$("#mobile-logout-btn").addEventListener("click", doLogout);
+
+const useMock = new URLSearchParams(window.location.search).has("mock");
+if (useMock) {
+  setTimeout(() => {
+    $("#login-screen").style.display = "none";
+    $("#app").style.display = "block";
+    $("#sidebar-email").textContent = "mock-admin@waterqo.com";
+    startListeners();
+  }, 100);
+} else {
+  onAuthStateChanged(auth, (user)=>{
+    if(user){
+      $("#login-screen").style.display = "none";
+      $("#app").style.display = "block";
+      $("#sidebar-email").textContent = user.email;
+      startListeners();
+    } else {
+      $("#login-screen").style.display = "flex";
+      $("#app").style.display = "none";
+    }
+  });
+}
+
+/* ---------------------------------------------------------------------- */
+/* Connectivity                                                            */
+/* ---------------------------------------------------------------------- */
+let wasOffline = false;
+function updateOfflineBanner(){
+  const offline = !navigator.onLine;
+  $("#offline-banner").style.display = offline ? "flex" : "none";
+  if(offline) wasOffline = true;
+  else if(wasOffline){ wasOffline = false; toast("Back online — syncing changes."); }
+}
+window.addEventListener("online", updateOfflineBanner);
+window.addEventListener("offline", updateOfflineBanner);
+updateOfflineBanner();
+
+/* ---------------------------------------------------------------------- */
+/* Data state + Firestore listeners                                       */
+/* ---------------------------------------------------------------------- */
+let clients = [];
+let cycles = [];
+let staff = [];
+let listenersStarted = false;
+let dashOpenSections = new Set(); // which dashboard accordion sections are expanded
+let activeServicePerson = null;
+let activePaymentsSubTab = "outstanding";
+let ledgerOpenClients = new Set();
+let paymentsListenersInitialized = false;
+
+function startListeners(){
+  if(listenersStarted) return;
+  listenersStarted = true;
+  initPaymentsTabListeners();
+  initEntriesTabListeners();
+
+  if (useMock) {
+    const today = todayStr();
+    clients = [
+      { id: "c1", name: "Mrs. Perera - Nawala", phone: "0771234567", agreedPrice: 8000, servicePerson: "Kasun", active: true, notes: "Gate code 4521" },
+      { id: "c2", name: "Mr. Fernando - Colombo 7", phone: "0777654321", agreedPrice: 12000, servicePerson: "Kasun", active: true },
+      { id: "c3", name: "Dr. Silva - Battaramulla", phone: "0711122334", agreedPrice: 9500, servicePerson: "Kasun", active: true, notes: "Prefers morning visits" },
+      { id: "c4", name: "Hotel Oasis - Mount Lavinia", phone: "0112345678", agreedPrice: 25000, servicePerson: "Nimal", active: true },
+      { id: "c5", name: "Mrs. Gunawardena - Rajagiriya", phone: "0779988776", agreedPrice: 7000, servicePerson: "Kasun", active: true }
+    ];
+    
+    staff = [
+      { id: "s1", name: "Kasun", phone: "0770001112" },
+      { id: "s2", name: "Nimal", phone: "0770001113" }
+    ];
+    
+    cycles = [
+      // c1: Completed services, Awaiting invoice
+      {
+        id: "cy1",
+        clientId: "c1",
+        clientName: "Mrs. Perera - Nawala",
+        servicePerson: "Kasun",
+        agreedPrice: 8000,
+        cycleStart: addDays(today, -30),
+        status: "invoice_pending",
+        servicesCompleted: 8,
+        skippedDays: [],
+        invoiceSentAt: null,
+        paymentReceivedAt: null,
+        invoiceNumber: null,
+        description: "Feb"
+      },
+      // c2: Invoiced 5 days ago, Awaiting payment
+      {
+        id: "cy2",
+        clientId: "c2",
+        clientName: "Mr. Fernando - Colombo 7",
+        servicePerson: "Kasun",
+        agreedPrice: 12000,
+        cycleStart: addDays(today, -35),
+        status: "payment_pending",
+        servicesCompleted: 8,
+        skippedDays: [],
+        invoiceSentAt: { toDate: () => new Date(addDays(today, -5)) },
+        paymentReceivedAt: null,
+        invoiceNumber: "INV-2026-088",
+        description: "Feb"
+      },
+      // c3: Invoiced 35 days ago, Overdue payment!
+      {
+        id: "cy3",
+        clientId: "c3",
+        clientName: "Dr. Silva - Battaramulla",
+        servicePerson: "Kasun",
+        agreedPrice: 9500,
+        cycleStart: addDays(today, -65),
+        status: "payment_pending",
+        servicesCompleted: 7,
+        skippedDays: [{ date: addDays(today, -50), reason: "Heavy rain" }],
+        invoiceSentAt: { toDate: () => new Date(addDays(today, -35)) },
+        paymentReceivedAt: null,
+        lastCalledAt: null,
+        lastCallNote: "",
+        invoiceNumber: null,
+        description: "Jan"
+      },
+      // c4: In progress
+      {
+        id: "cy4",
+        clientId: "c4",
+        clientName: "Hotel Oasis - Mount Lavinia",
+        servicePerson: "Nimal",
+        agreedPrice: 25000,
+        cycleStart: addDays(today, -10),
+        status: "in_progress",
+        servicesCompleted: null,
+        skippedDays: [],
+        invoiceSentAt: null,
+        paymentReceivedAt: null,
+        invoiceNumber: null,
+        description: "Aug"
+      },
+      // c5: Completed & Paid
+      {
+        id: "cy5",
+        clientId: "c5",
+        clientName: "Mrs. Gunawardena - Rajagiriya",
+        servicePerson: "Kasun",
+        agreedPrice: 7000,
+        cycleStart: addDays(today, -40),
+        status: "completed",
+        servicesCompleted: 8,
+        skippedDays: [],
+        invoiceSentAt: { toDate: () => new Date(addDays(today, -12)) },
+        paymentReceivedAt: { toDate: () => new Date(addDays(today, -5)) },
+        invoiceNumber: "INV-2026-042",
+        description: "Jul"
+      }
+    ];
+    
+    renderAll();
+    return;
+  }
+
+  if(unsubClients) unsubClients();
+  if(unsubCycles) unsubCycles();
+  if(unsubStaff) unsubStaff();
+
+  unsubClients = onSnapshot(query(collection(db, CLIENTS), orderBy("name")), (snap)=>{
+    clients = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderAll();
+  }, (err)=> toast("Clients sync error: " + err.message));
+
+  unsubCycles = onSnapshot(query(collection(db, CYCLES), orderBy("cycleStart", "desc")), (snap)=>{
+    cycles = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderAll();
+  }, (err)=> toast("Cycles sync error: " + err.message));
+
+  unsubStaff = onSnapshot(query(collection(db, STAFF), orderBy("name")), (snap)=>{
+    staff = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+    renderAll();
+  }, (err)=> toast("Team sync error: " + err.message));
+}
+
+function renderAll(){
+  renderDashboard();
+  renderClients();
+  renderTeam();
+  renderPayments();
+  renderNotifications();
+  renderEntries();
+  bindAlertCardActions();
+bindDashboardAccordion();
+  populateServicePersonList();
+}
+
+/* ---------------------------------------------------------------------- */
+/* Navigation                                                              */
+/* ---------------------------------------------------------------------- */
+const VIEWS = ["dashboard","payments","clients","entries","notifications","team"];
+function switchView(view){
+  VIEWS.forEach(v=>{
+    $("#view-"+v).style.display = (v===view) ? "block" : "none";
+  });
+  $$(".nav-item[data-view]").forEach(el=>{
+    el.classList.toggle("active", el.dataset.view === view);
+  });
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+$$(".nav-item[data-view]").forEach(el=>{
+  el.addEventListener("click", ()=> switchView(el.dataset.view));
+});
+$("#mobile-notif-btn").addEventListener("click", ()=> switchView("notifications"));
+
+$("#today-label").textContent = "Today — " + fmtDate(todayStr());
+
+/* ---------------------------------------------------------------------- */
+/* Cycle helpers                                                           */
+/* ---------------------------------------------------------------------- */
+function cycleEndDate(cycle){
+  // Manual override takes priority if the user set an explicit end date.
+  if(cycle.cycleEndOverride) return cycle.cycleEndOverride;
+  // Calendar-month cycle: start on day X → end on day (X-1) of the following
+  // month. e.g. start 10th → end 9th next month, regardless of month length.
+  return addDays(addMonths(cycle.cycleStart, 1), -1);
+}
+function lastDayOfMonth(dateStr){
+  // Last calendar day of the month that dateStr falls in.
+  const [y,m] = dateStr.split("-").map(Number);
+  const firstOfMonth = `${y}-${String(m).padStart(2,"0")}-01`;
+  return addDays(addMonths(firstOfMonth, 1), -1);
+}
+const FIVE_WEEKS_DAYS = 35;
+// "End of month" quick-fill: sets end date to the last day of the start
+// month, but only when that's still under 5 weeks from the start date —
+// otherwise it's skipped and the field is left for normal cycle logic.
+function applyEndOfMonth(startInputId, endInputId, toggleId){
+  const startVal = $("#"+startInputId).value;
+  if(!startVal){ $("#"+toggleId).checked = false; return; }
+  const eom = lastDayOfMonth(startVal);
+  const gapDays = Math.round((new Date(eom+"T00:00:00Z") - new Date(startVal+"T00:00:00Z")) / 86400000) + 1;
+  if(gapDays >= FIVE_WEEKS_DAYS){
+    $("#"+toggleId).checked = false;
+    toast("End of month would make this a 5+ week cycle — left as the normal 1-month cycle instead.");
+    $("#"+endInputId).value = "";
+    return;
+  }
+  $("#"+endInputId).value = eom;
+}
+function cycleLengthDays(cycle){
+  // Actual number of days in this specific cycle (varies 28-31 depending on
+  // the months it spans) — used for progress calculations.
+  const start = new Date(cycle.cycleStart + "T00:00:00");
+  const end = new Date(cycleEndDate(cycle) + "T00:00:00");
+  return Math.round((end - start) / 86400000) + 1;
+}
+function activeCycleForClient(clientId){
+  // Only an in-progress cycle blocks starting the next one. A cycle that has
+  // finished its service phase (invoice_pending / payment_pending) no longer
+  // counts as "active" — it's just trailing paperwork.
+  return cycles.find(c => c.clientId === clientId && c.status === "in_progress");
+}
+function trailingCycleForClient(clientId, excludeId){
+  // A previous cycle whose services are done/skipped but invoice/payment
+  // hasn't been wrapped up yet — still shown so nothing gets lost track of.
+  return cycles.find(c => c.clientId === clientId && c.id !== excludeId &&
+    (c.status === "invoice_pending" || c.status === "payment_pending"));
+}
+function needsReview(cycle){
+  return cycle.status === "in_progress" && todayStr() >= cycleEndDate(cycle);
+}
+function liveCycles(){
+  // Deleted clients' cycles stay in Firestore for the History record, but
+  // shouldn't surface on the Dashboard or Notifications anymore.
+  const existingClientIds = new Set(clients.map(c => c.id));
+  return cycles.filter(c => existingClientIds.has(c.clientId));
+}
+function clientById(id){
+  return clients.find(c => c.id === id);
+}
+const OVERDUE_CALL_DAYS = 30;
+const RECALL_REMINDER_DAYS = 5;
+function overduePaymentCycles(){
+  return liveCycles().filter(c => c.status === "payment_pending" && c.invoiceSentAt && daysSince(c.invoiceSentAt) > OVERDUE_CALL_DAYS && isDueForCall(c));
+}
+// True if this overdue cycle either hasn't been called yet, or was called
+// more than RECALL_REMINDER_DAYS ago and still hasn't been paid.
+function isDueForCall(cycle){
+  if(!cycle.lastCalledAt) return true;
+  return daysSince(cycle.lastCalledAt) >= RECALL_REMINDER_DAYS;
+}
+
+/* ---------------------------------------------------------------------- */
+/* Dashboard rendering                                                     */
+/* ---------------------------------------------------------------------- */
+function renderDashboard(){
+  const activeClients = clients.filter(c => c.active !== false).length;
+  const dashCycles = liveCycles();
+  const reviewCount = dashCycles.filter(needsReview).length;
+  const invoiceCount = dashCycles.filter(c => c.status === "invoice_pending").length;
+  const paymentCount = dashCycles.filter(c => c.status === "payment_pending").length;
+  const overdueCallCycles = overduePaymentCycles();
+  const now = new Date();
+  const monthRevenue = dashCycles
+    .filter(c => c.status === "completed" && c.paymentReceivedAt && sameMonth(c.paymentReceivedAt, now))
+    .reduce((sum,c)=> sum + Number(c.agreedPrice || 0), 0);
+
+  $("#stat-cards").innerHTML = `
+    <div class="stat-card"><div class="num">${activeClients}</div><div class="label">Active clients</div></div>
+    <div class="stat-card accent-amber clickable" data-jump="review"><div class="num">${reviewCount}</div><div class="label">Cycles ready for 4-week check</div></div>
+    <div class="stat-card accent-amber clickable" data-jump="invoice"><div class="num">${invoiceCount}</div><div class="label">Invoices to send</div></div>
+    <div class="stat-card accent-danger clickable" data-jump="payment"><div class="num">${paymentCount}</div><div class="label">Payments pending</div></div>
+    <div class="stat-card accent-danger clickable" data-jump="call"><div class="num">${overdueCallCycles.length}</div><div class="label">Overdue 30+ days — call client</div></div>
+    <div class="stat-card accent-aqua"><div class="num mono">${fmtMoney(monthRevenue)}</div><div class="label">Collected this month</div></div>
+  `;
+
+  let html = "";
+
+  const reviewCycles = dashCycles.filter(needsReview);
+  const invoiceCycles = dashCycles.filter(c => c.status === "invoice_pending");
+  const paymentCycles = dashCycles.filter(c => c.status === "payment_pending");
+  const inProgress = dashCycles.filter(c => c.status === "in_progress" && !needsReview(c));
+
+  if(overdueCallCycles.length){
+    html += accordionSectionHTML("call", "danger", "📞 Call client — payment overdue 30+ days",
+      overdueCallCycles.map(c => alertCardHTML(c, "danger", "call")).join(""), overdueCallCycles.length);
+  }
+
+  if(reviewCycles.length){
+    html += accordionSectionHTML("review", "amber", "🕓 Ready for 4-week check",
+      reviewCycles.map(c => alertCardHTML(c, "amber", "review")).join(""), reviewCycles.length);
+  }
+
+  if(invoiceCycles.length){
+    html += accordionSectionHTML("invoice", "amber", "🧾 Send invoice",
+      invoiceCycles.map(c => alertCardHTML(c, "amber", "invoice")).join(""), invoiceCycles.length);
+  }
+
+  if(paymentCycles.length){
+    html += accordionSectionHTML("payment", "danger", "💰 Payment pending",
+      paymentCycles.map(c => alertCardHTML(c, "danger", "payment")).join(""), paymentCycles.length);
+  }
+
+  if(inProgress.length){
+    const cardsHtml = inProgress.map(c => {
+      const daysLeft = daysUntil(cycleEndDate(c));
+      const client = clientById(c.clientId);
+      const notesLine = client && client.notes ? `<div class="card-meta" style="margin-top:6px;color:var(--ink);">📝 ${esc(client.notes)}</div>` : "";
+      return `
+        <div class="card">
+          <div class="card-row">
+            <div>
+              <div class="card-title">${esc(c.clientName)}</div>
+              <div class="card-meta">${esc(c.servicePerson)} · cycle ${fmtDate(c.cycleStart)} → ${fmtDate(cycleEndDate(c))} · ${daysLeft} day${daysLeft===1?"":"s"} left</div>
+              <div class="pool-gauge"><div class="pool-gauge-fill" style="width:${(()=>{const total=cycleLengthDays(c); return Math.min(100, Math.round(((total-daysLeft)/total)*100));})()}%"></div></div>
+              ${notesLine}
+            </div>
+            <span class="pill pill-progress">In progress</span>
+          </div>
+        </div>`;
+    }).join("");
+    html += accordionSectionHTML("inprogress", "aqua", "▶ In progress", cardsHtml, inProgress.length);
+  }
+
+  if(!reviewCycles.length && !invoiceCycles.length && !paymentCycles.length && !inProgress.length && !overdueCallCycles.length){
+    html += `<div class="empty-state"><div class="big">🌊</div>No active cycles right now.<br>Add a client to start tracking their service cycle.</div>`;
+  }
+
+  $("#dash-alerts").innerHTML = html;
+}
+
+// Renders one collapsible dashboard section. `key` matches dashOpenSections
+// entries and the stat-card data-jump values so state survives re-renders.
+function accordionSectionHTML(key, tone, title, cardsHtml, count){
+  const open = dashOpenSections.has(key);
+  return `
+    <div class="accordion tone-${tone}${open ? " open" : ""}" data-section="${key}">
+      <div class="accordion-header" data-toggle="${key}">
+        <div class="ah-title">${title}</div>
+        <div class="ah-right">
+          <span class="ah-count">${count}</span>
+          <span class="accordion-chevron">▸</span>
+        </div>
+      </div>
+      <div class="accordion-body"><div class="accordion-body-inner">${cardsHtml}</div></div>
+    </div>`;
+}
+
+function bindDashboardAccordion(){
+  $$('.accordion-header[data-toggle]').forEach(h => h.addEventListener("click", ()=>{
+    const key = h.dataset.toggle;
+    if(dashOpenSections.has(key)) dashOpenSections.delete(key); else dashOpenSections.add(key);
+    renderDashboard();
+    bindAlertCardActions();
+    bindDashboardAccordion();
+  }));
+  $$('.stat-card[data-jump]').forEach(s => s.addEventListener("click", ()=>{
+    const key = s.dataset.jump;
+    dashOpenSections.add(key);
+    renderDashboard();
+    bindAlertCardActions();
+    bindDashboardAccordion();
+    const target = document.querySelector(`.accordion[data-section="${key}"]`);
+    if(target) target.scrollIntoView({ behavior: "smooth", block: "start" });
+  }));
+}
+
+function sameMonth(ts, now){
+  if(!ts) return false;
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+}
+
+function alertCardHTML(cycle, tone, kind){
+  let metaLine = "";
+  let btn = "";
+  const client = clientById(cycle.clientId);
+  if(kind === "review"){
+    metaLine = `${esc(cycle.servicePerson)} · cycle ${fmtDate(cycle.cycleStart)} → ${fmtDate(cycleEndDate(cycle))} · 4 weeks complete`;
+    btn = `<button class="btn btn-amber btn-sm" data-action="review" data-id="${cycle.id}">Do 4-week check</button>`;
+  } else if(kind === "invoice"){
+    metaLine = `${esc(cycle.servicePerson)} · ${cycle.servicesCompleted}/8 services · ${fmtMoney(cycle.agreedPrice)}`;
+    btn = `<button class="btn btn-amber btn-sm" data-action="invoice" data-id="${cycle.id}">Send invoice</button>`;
+  } else if(kind === "payment"){
+    const sentDaysAgo = cycle.invoiceSentAt ? daysSince(cycle.invoiceSentAt) : null;
+    const invTag = cycle.invoiceNumber
+      ? `<span class="invoice-tag clickable" onclick="openInvoiceNumberModal('${cycle.id}')" title="Click to edit invoice number">🧾 ${esc(cycle.invoiceNumber)}</span>`
+      : `<button class="invoice-tag-empty" onclick="openInvoiceNumberModal('${cycle.id}')" title="Add invoice number">+ Add Inv #</button>`;
+    metaLine = `Invoice sent ${sentDaysAgo !== null ? sentDaysAgo + " day" + (sentDaysAgo===1?"":"s") + " ago" : ""} · ${fmtMoney(cycle.agreedPrice)} · ${invTag}`;
+    btn = `
+      <button class="btn btn-outline btn-sm" data-action="invoice" data-id="${cycle.id}" title="Edit invoice details">🧾 Invoice</button>
+      <button class="btn btn-primary btn-sm" data-action="payment" data-id="${cycle.id}">Confirm payment</button>
+    `;
+  } else if(kind === "call"){
+    const c = client;
+    const overdueDays = daysSince(cycle.invoiceSentAt);
+    const dueAgain = isDueForCall(cycle);
+    let callStatus = "";
+    if(cycle.lastCalledAt){
+      const calledDaysAgo = daysSince(cycle.lastCalledAt);
+      callStatus = `<div class="card-meta" style="margin-top:6px;">${dueAgain ? '⏰ ' : '✓ '}Called ${calledDaysAgo===0?'today':calledDaysAgo+' day'+(calledDaysAgo===1?'':'s')+' ago'}${cycle.lastCallNote ? ' — “'+esc(cycle.lastCallNote)+'”' : ''}${dueAgain ? ' · still unpaid, due to call again' : ''}</div>`;
+    }
+    const invTag = cycle.invoiceNumber
+      ? `<span class="invoice-tag clickable" onclick="openInvoiceNumberModal('${cycle.id}')" title="Click to edit invoice number">🧾 ${esc(cycle.invoiceNumber)}</span>`
+      : `<button class="invoice-tag-empty" onclick="openInvoiceNumberModal('${cycle.id}')" title="Add invoice number">+ Add Inv #</button>`;
+    metaLine = `${esc(cycle.servicePerson)} · payment overdue ${overdueDays} days · ${fmtMoney(cycle.agreedPrice)} · ${invTag}`;
+    const wa = c && c.phone ? waLink(c.phone, paymentReminderMessage(cycle.clientName, fmtMoney(cycle.agreedPrice))) : null;
+    btn = `
+      ${c && c.phone ? `<a class="btn btn-danger btn-sm" href="tel:${esc(c.phone)}">📞 Call</a>` : `<button class="btn btn-outline btn-sm" data-action="edit-client-phone" data-id="${cycle.clientId}">Add phone number</button>`}
+      ${wa ? `<a class="btn btn-aqua btn-sm" href="${wa}" target="_blank" rel="noopener">💬 WhatsApp</a>` : ""}
+      <button class="btn btn-outline btn-sm" data-action="mark-called" data-id="${cycle.id}">Mark as called</button>
+    `;
+    metaLine += callStatus;
+  }
+  const descVal = cycle.description || getShortMonthName(cycle.cycleStart);
+  const descHTML = `<div class="card-meta" style="margin-top:3px;font-size:11.5px;color:var(--muted);display:flex;align-items:center;">✍️ Description: <input type="text" class="inline-desc-input" value="${esc(descVal)}" data-cycle-id="${cycle.id}"> <span style="font-size:10px;margin-left:4px;cursor:pointer;" title="Click to edit">✏️</span></div>`;
+  const notesLine = client && client.notes ? `<div class="card-meta" style="margin-top:6px;color:var(--ink);">📝 ${esc(client.notes)}</div>` : "";
+  return `
+    <div class="card alert-${tone}">
+      <div class="card-row">
+        <div>
+          <div class="card-title">${esc(cycle.clientName)}</div>
+          <div class="card-meta">${metaLine}</div>
+          ${descHTML}
+          ${notesLine}
+        </div>
+        <div class="card-actions">${btn}</div>
+      </div>
+    </div>`;
+}
+
+function daysSince(ts){
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  return Math.round((new Date() - d) / 86400000);
+}
+
+/* ---------------------------------------------------------------------- */
+/* Notifications — same reminders as the dashboard alerts, all in one tab   */
+/* ---------------------------------------------------------------------- */
+function renderNotifications(){
+  const notifCycles = liveCycles();
+  const overdueCallCycles = overduePaymentCycles();
+  const reviewCycles = notifCycles.filter(needsReview);
+  const invoiceCycles = notifCycles.filter(c => c.status === "invoice_pending");
+  const paymentCycles = notifCycles.filter(c => c.status === "payment_pending");
+  const total = overdueCallCycles.length + reviewCycles.length + invoiceCycles.length + paymentCycles.length;
+
+  $$(".notif-badge").forEach(b=>{
+    b.textContent = total;
+    b.style.display = total ? "inline-flex" : "none";
+  });
+
+  let html = "";
+  if(overdueCallCycles.length){
+    html += `<div class="section-title">📞 Call client — payment overdue 30+ days</div>`;
+    overdueCallCycles.forEach(c => html += alertCardHTML(c, "danger", "call"));
+  }
+  if(reviewCycles.length){
+    html += `<div class="section-title">🕓 Ready for 4-week check</div>`;
+    reviewCycles.forEach(c => html += alertCardHTML(c, "amber", "review"));
+  }
+  if(invoiceCycles.length){
+    html += `<div class="section-title">🧾 Send invoice</div>`;
+    invoiceCycles.forEach(c => html += alertCardHTML(c, "amber", "invoice"));
+  }
+  if(paymentCycles.length){
+    html += `<div class="section-title">💰 Payment pending</div>`;
+    paymentCycles.forEach(c => html += alertCardHTML(c, "danger", "payment"));
+  }
+  if(!total){
+    html = `<div class="empty-state"><div class="big">🔔</div>You're all caught up — nothing needs your attention right now.</div>`;
+  }
+  $("#notif-list").innerHTML = html;
+}
+
+function bindAlertCardActions(){
+  $$('[data-action="review"]').forEach(b => b.addEventListener("click", ()=> openReviewModal(b.dataset.id)));
+  $$('[data-action="invoice"]').forEach(b => b.addEventListener("click", ()=> openInvoiceModal(b.dataset.id)));
+  $$('[data-action="payment"]').forEach(b => b.addEventListener("click", ()=> openPaymentModal(b.dataset.id)));
+  $$('[data-action="edit-client-phone"]').forEach(b => b.addEventListener("click", ()=> openClientModal(b.dataset.id)));
+  $$('[data-action="mark-called"]').forEach(b => b.addEventListener("click", ()=> openCallLogModal(b.dataset.id)));
+}
+
+function openCallLogModal(cycleId){
+  const cycle = cycles.find(c => c.id === cycleId);
+  if(!cycle) return;
+  $("#call-log-cycle-id").value = cycleId;
+  $("#call-log-sub").textContent = `${cycle.clientName} · ${fmtMoney(cycle.agreedPrice)} owed`;
+  $("#call-log-note").value = "";
+  openModal("modal-call-log");
+}
+
+$("#save-call-log-btn").addEventListener("click", async ()=>{
+  const cycleId = $("#call-log-cycle-id").value;
+  const note = $("#call-log-note").value.trim();
+  try{
+    await updateDoc(doc(db, CYCLES, cycleId), { lastCalledAt: serverTimestamp(), lastCallNote: note });
+    toast("Call logged.");
+    closeModal("modal-call-log");
+  }catch(err){ toast("Error logging call: " + err.message); }
+});
+
+/* ---------------------------------------------------------------------- */
+/* Clients view (CRUD + search)                                            */
+/* ---------------------------------------------------------------------- */
+function renderClients(){
+  const term = ($("#client-search").value || "").toLowerCase();
+  const filtered = clients.filter(c => (c.name||"").toLowerCase().includes(term) || (c.servicePerson||"").toLowerCase().includes(term) || (c.phone||"").toLowerCase().includes(term));
+
+  let rows = "";
+  let cards = "";
+
+  filtered.forEach(c => {
+    const cycle = activeCycleForClient(c.id);
+    const trailing = trailingCycleForClient(c.id, cycle ? cycle.id : null);
+    let statusCls = "pill-done", statusLabel = "No active cycle", cycleInfo = "—";
+    const statusMap = {
+      in_progress: (cy) => needsReview(cy) ? ["pill-review","Review due"] : ["pill-progress","In progress"],
+      invoice_pending: () => ["pill-invoice","Invoice pending"],
+      payment_pending: () => ["pill-payment","Payment pending"]
+    };
+    if(cycle){
+      [statusCls, statusLabel] = statusMap[cycle.status](cycle);
+      cycleInfo = `${fmtDate(cycle.cycleStart)} → ${fmtDate(cycleEndDate(cycle))}`;
+    } else if(trailing){
+      [statusCls, statusLabel] = statusMap[trailing.status](trailing);
+      cycleInfo = `${fmtDate(trailing.cycleStart)} → ${fmtDate(cycleEndDate(trailing))}`;
+    }
+    // if a new cycle is already running, still flag an older unresolved one so it isn't forgotten
+    const trailingNote = (cycle && trailing)
+      ? `<div class="card-meta" style="margin-top:2px;font-size:11.5px;color:var(--muted);">+ prior cycle ${trailing.status==="payment_pending"?"awaiting payment":"awaiting invoice"} (${fmtDate(trailing.cycleStart)})</div>`
+      : "";
+    const inactiveTag = c.active===false ? ' <span class="pill" style="background:#eee;color:#888;">Inactive</span>' : '';
+    // New cycle can start once the service phase is over, even if invoice/payment on the last one is still pending
+    const newCycleBtn = !cycle ? `<button class="btn btn-outline btn-sm" data-newcycle="${c.id}">New cycle</button>` : "";
+
+    rows += `
+      <tr>
+        <td><strong>${esc(c.name)}</strong>${inactiveTag}${c.notes ? ' <span title="Has notes" style="opacity:.6;">📝</span>' : ''}</td>
+        <td>${phoneCell(c.phone, c.name, c.agreedPrice)}</td>
+        <td>${esc(c.servicePerson)}</td>
+        <td class="mono">${fmtMoney(c.agreedPrice)}</td>
+        <td><span class="pill ${statusCls}">${statusLabel}</span>${trailingNote}</td>
+        <td>${cycleInfo}</td>
+        <td>
+          <div class="row-actions">
+            <button class="btn btn-outline btn-sm" data-edit="${c.id}">Edit</button>
+            ${newCycleBtn}
+            <button class="btn btn-outline btn-sm" data-detail-client="${c.id}">View</button>
+            <button class="btn btn-danger btn-sm" data-delete="${c.id}">Delete</button>
+          </div>
+        </td>
+      </tr>`;
+
+    cards += `
+      <div class="client-card">
+        <div class="client-card-top">
+          <div>
+            <div class="client-card-name">${esc(c.name)}${inactiveTag}${c.notes ? ' <span title="Has notes" style="opacity:.6;">📝</span>' : ''}</div>
+            <div class="client-card-meta">${esc(c.servicePerson)}${c.phone ? ` · ${phoneCell(c.phone, c.name, c.agreedPrice)}` : ""}</div>
+          </div>
+          <span class="pill ${statusCls}">${statusLabel}</span>
+        </div>
+        ${trailingNote}
+        <div class="client-card-row">
+          <span class="client-card-price">${fmtMoney(c.agreedPrice)}</span>
+          <span class="client-card-cycle" style="margin-top:0;">${cycleInfo}</span>
+        </div>
+        <div class="client-card-actions">
+          <button class="btn btn-outline btn-sm" data-edit="${c.id}">Edit</button>
+          <button class="btn btn-outline btn-sm" data-detail-client="${c.id}">View history</button>
+          ${newCycleBtn ? `<div style="grid-column:1 / -1;">${newCycleBtn.replace('class="btn btn-outline btn-sm"','class="btn btn-outline btn-sm" style="width:100%;"')}</div>` : ""}
+          <button class="btn btn-danger btn-sm" data-delete="${c.id}">Delete</button>
+        </div>
+      </div>`;
+  });
+
+  $("#clients-tbody").innerHTML = rows || `<tr><td colspan="7"><div class="empty-state"><div class="big">👤</div>No clients found.</div></td></tr>`;
+  $("#clients-cards").innerHTML = cards || `<div class="empty-state"><div class="big">👤</div>No clients found.</div>`;
+
+  $$('[data-edit]').forEach(b => b.addEventListener("click", ()=> openClientModal(b.dataset.edit)));
+  $$('[data-delete]').forEach(b => b.addEventListener("click", ()=> deleteClient(b.dataset.delete)));
+  $$('[data-newcycle]').forEach(b => b.addEventListener("click", ()=> openNextCycleModal(null, b.dataset.newcycle)));
+  $$('[data-detail-client]').forEach(b => b.addEventListener("click", ()=> openClientDetail(b.dataset.detailClient)));
+}
+$("#client-search").addEventListener("input", renderClients);
+
+function openClientDetail(clientId){
+  const c = clients.find(x=>x.id===clientId);
+  if(!c) return;
+  const clientCycles = cycles.filter(cy=>cy.clientId===clientId).sort((a,b)=> b.cycleStart.localeCompare(a.cycleStart));
+  $("#detail-title").textContent = c.name;
+  $("#detail-sub").textContent = `${c.servicePerson}${c.phone ? " · " + c.phone : ""} · ${fmtMoney(c.agreedPrice)} per cycle`;
+  const notesHTML = c.notes ? `<div class="card" style="margin-bottom:8px;background:var(--aqua-soft);border:none;"><div class="card-title" style="font-size:13px;">📝 Notes</div><div class="card-meta" style="color:var(--ink);">${esc(c.notes)}</div></div>` : "";
+  $("#detail-body").innerHTML = notesHTML + (clientCycles.length ? clientCycles.map(cy=>{
+    const invTag = cy.invoiceNumber
+      ? `<span class="invoice-tag clickable" onclick="openInvoiceNumberModal('${cy.id}')" title="Click to edit invoice number">🧾 ${esc(cy.invoiceNumber)}</span>`
+      : `<button class="invoice-tag-empty" onclick="openInvoiceNumberModal('${cy.id}')" title="Add invoice number">+ Add Inv #</button>`;
+    return `
+      <div class="card" style="margin-bottom:8px;">
+        <div style="display:flex;justify-content:space-between;align-items:center;gap:8px;">
+          <div class="card-title" style="font-size:13.5px;">${fmtDate(cy.cycleStart)} → ${fmtDate(cycleEndDate(cy))}</div>
+          <div>${invTag}</div>
+        </div>
+        <div class="card-meta">${statusLabel(cy.status, cy)} ${cy.servicesCompleted!=null ? "· "+cy.servicesCompleted+"/8 services" : ""}</div>
+        ${(cy.skippedDays && cy.skippedDays.length) ? `<div class="card-meta" style="margin-top:4px;">Skipped: ${cy.skippedDays.map(s=>`${fmtDate(s.date)} (${esc(s.reason)})`).join(", ")}</div>` : ""}
+      </div>
+    `;
+  }).join("") : `<div class="empty-state">No cycles yet for this client.</div>`);
+  openModal("modal-detail");
+}
+function statusLabel(status, cy){
+  if(status === "completed") return "Completed — payment received " + fmtDate(tsToDateStr(cy.paymentReceivedAt));
+  if(status === "payment_pending") return "Invoice sent, awaiting payment";
+  if(status === "invoice_pending") return "Awaiting invoice";
+  return "In progress";
+}
+function tsToDateStr(ts){
+  if(!ts) return null;
+  const d = ts.toDate ? ts.toDate() : new Date(ts);
+  return d.toISOString().slice(0,10);
+}
+
+/* --- Add / Edit client --- */
+$("#add-client-btn").addEventListener("click", ()=> openClientModal(null));
+$("#add-client-btn-top").addEventListener("click", ()=> openClientModal(null));
+
+function openClientModal(clientId){
+  const isEdit = !!clientId;
+  $("#client-modal-title").textContent = isEdit ? "Edit client" : "New client";
+  $("#cycle-start-field").style.display = isEdit ? "none" : "block";
+  $("#cycle-end-field").style.display = isEdit ? "none" : "block";
+  populateServicePersonList();
+  if(isEdit){
+    const c = clients.find(x=>x.id===clientId);
+    $("#client-id").value = c.id;
+    $("#client-name").value = c.name;
+    $("#client-phone").value = c.phone || "";
+    $("#client-price").value = c.agreedPrice;
+    $("#client-service-person").value = c.servicePerson;
+    $("#client-notes").value = c.notes || "";
+  } else {
+    $("#client-id").value = "";
+    $("#client-name").value = "";
+    $("#client-phone").value = "";
+    $("#client-price").value = "";
+    $("#client-service-person").value = "";
+    $("#client-notes").value = "";
+    $("#client-cycle-start").value = todayStr();
+    $("#client-cycle-desc").value = getShortMonthName(todayStr());
+    $("#client-cycle-end").value = "";
+    $("#client-eom-toggle").checked = false;
+  }
+  if(isEdit){
+    $("#cycle-desc-field").style.display = "none";
+  } else {
+    $("#cycle-desc-field").style.display = "block";
+  }
+  openModal("modal-client");
+}
+
+$("#client-eom-toggle").addEventListener("change", (e)=>{
+  if(e.target.checked) applyEndOfMonth("client-cycle-start", "client-cycle-end", "client-eom-toggle");
+});
+$("#client-cycle-start").addEventListener("change", ()=>{
+  if($("#client-eom-toggle").checked) applyEndOfMonth("client-cycle-start", "client-cycle-end", "client-eom-toggle");
+  $("#client-cycle-desc").value = getShortMonthName($("#client-cycle-start").value);
+});
+
+$("#save-client-btn").addEventListener("click", async ()=>{
+  const id = $("#client-id").value;
+  const name = $("#client-name").value.trim();
+  const phone = $("#client-phone").value.trim();
+  const price = Number($("#client-price").value);
+  const servicePerson = $("#client-service-person").value.trim();
+  const notes = $("#client-notes").value.trim();
+  if(!name || !servicePerson || !price){
+    toast("Please fill in client name, price and service person.");
+    return;
+  }
+  try{
+    if(id){
+      await updateDoc(doc(db, CLIENTS, id), { name, phone, agreedPrice: price, servicePerson, notes });
+      toast("Client updated.");
+    } else {
+      const cycleStart = $("#client-cycle-start").value || todayStr();
+      const cycleEndOverride = $("#client-cycle-end").value || null;
+      const description = $("#client-cycle-desc").value.trim() || getShortMonthName(cycleStart);
+      const clientRef = await addDoc(collection(db, CLIENTS), {
+        name, phone, agreedPrice: price, servicePerson, notes, active: true, createdAt: serverTimestamp()
+      });
+      await addDoc(collection(db, CYCLES), {
+        clientId: clientRef.id, clientName: name, servicePerson, agreedPrice: price,
+        cycleStart, cycleEndOverride, status: "in_progress", servicesCompleted: null, skippedDays: [],
+        invoiceSentAt: null, paymentReceivedAt: null, createdAt: serverTimestamp(),
+        description
+      });
+      toast("Client added and first cycle started.");
+    }
+    closeModal("modal-client");
+    ensureStaffExists(servicePerson);
+  }catch(err){ toast("Error saving client: " + err.message); }
+});
+
+async function deleteClient(id){
+  if(!confirm("Delete this client? Their cycles will disappear from Dashboard, Notifications and History (the records stay in the database, just no longer shown).")) return;
+  try{
+    await deleteDoc(doc(db, CLIENTS, id));
+    toast("Client deleted.");
+  }catch(err){ toast("Error deleting client: " + err.message); }
+}
+
+/* ---------------------------------------------------------------------- */
+/* Team (service persons)                                                  */
+/* ---------------------------------------------------------------------- */
+
+// Combine registered staff docs with any servicePerson names typed on
+// clients that don't have a staff record yet, so nobody falls through the cracks.
+function allServicePeople(){
+  const byName = new Map();
+  staff.forEach(s => byName.set(s.name, { id: s.id, name: s.name, phone: s.phone || "" }));
+  clients.forEach(c => {
+    const name = (c.servicePerson || "").trim();
+    if(name && !byName.has(name)) byName.set(name, { id: null, name, phone: "" });
+  });
+  return Array.from(byName.values()).sort((a,b)=> a.name.localeCompare(b.name));
+}
+
+let pendingServicePersonSelect = null;
+function populateServicePersonList(){
+  const sel = $("#client-service-person");
+  if(!sel) return;
+  const current = sel.value;
+  const people = allServicePeople();
+  sel.innerHTML = `<option value="">Select service person</option>` +
+    people.map(p => `<option value="${esc(p.name)}">${esc(p.name)}</option>`).join("");
+  if(pendingServicePersonSelect && people.some(p=>p.name===pendingServicePersonSelect)){
+    sel.value = pendingServicePersonSelect;
+    pendingServicePersonSelect = null;
+  } else if(current && people.some(p=>p.name===current)){
+    sel.value = current;
+  }
+}
+
+// Silently create a staff record (no phone yet) the first time a new
+// service person name is used on a client, so they immediately get a Team tab.
+async function ensureStaffExists(name){
+  if(!name) return;
+  if(staff.some(s => s.name === name)) return;
+  try{
+    await addDoc(collection(db, STAFF), { name, phone: "", createdAt: serverTimestamp() });
+  }catch(err){ /* non-critical, ignore */ }
+}
+
+function renderTeam(){
+  const people = allServicePeople();
+  if(!activeServicePerson || !people.some(p => p.name === activeServicePerson)){
+    activeServicePerson = people.length ? people[0].name : null;
+  }
+
+  $("#sp-tabs").innerHTML = people.map(p => `
+    <div class="sp-tab ${p.name===activeServicePerson?'active':''}" data-sp="${esc(p.name)}">
+      ${esc(p.name)}
+      <span class="sp-count">${clients.filter(c=>c.servicePerson===p.name).length}</span>
+      ${!p.phone ? '<span class="sp-nophone" title="No phone number saved">●</span>' : ''}
+    </div>`).join("");
+
+  $$('[data-sp]').forEach(el => el.addEventListener("click", ()=>{
+    activeServicePerson = el.dataset.sp;
+    renderTeam();
+  }));
+
+  if(!people.length){
+    $("#sp-content").innerHTML = `<div class="empty-state sp-empty"><div class="big">☺</div>No service people yet. Add one, or add a client with a service person name.</div>`;
+    return;
+  }
+
+  const person = people.find(p => p.name === activeServicePerson);
+  const theirClients = clients.filter(c => c.servicePerson === person.name);
+
+  const rows = theirClients.map(c => {
+    const cycle = activeCycleForClient(c.id);
+    let statusCls = "pill-done", statusLabel = "No active cycle";
+    if(cycle){
+      statusCls = needsReview(cycle) ? "pill-review" : (cycle.status==="invoice_pending" ? "pill-invoice" : cycle.status==="payment_pending" ? "pill-payment" : "pill-progress");
+      statusLabel = needsReview(cycle) ? "Review due" : cycle.status==="invoice_pending" ? "Invoice pending" : cycle.status==="payment_pending" ? "Payment pending" : "In progress";
+    }
+    return `
+      <tr>
+        <td><strong>${esc(c.name)}</strong></td>
+        <td>${phoneCell(c.phone, c.name, c.agreedPrice)}</td>
+        <td class="mono">${fmtMoney(c.agreedPrice)}</td>
+        <td><span class="pill ${statusCls}">${statusLabel}</span></td>
+      </tr>`;
+  }).join("");
+
+  $("#sp-content").innerHTML = `
+    <div class="card sp-profile">
+      <div>
+        <div class="sp-name">${esc(person.name)}</div>
+        <div class="sp-phone">${person.phone ? `<a href="tel:${esc(person.phone)}">${esc(person.phone)}</a>` : "No phone number saved yet"}</div>
+      </div>
+      <div class="row-actions">
+        <button class="btn btn-outline btn-sm" id="sp-edit-btn">Edit</button>
+        ${person.id ? `<button class="btn btn-danger btn-sm" id="sp-delete-btn">Delete</button>` : ""}
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Client</th><th>Phone</th><th>Agreed price</th><th>Status</th></tr></thead>
+        <tbody>${rows || `<tr><td colspan="4"><div class="empty-state"><div class="big">👤</div>No clients assigned to ${esc(person.name)} yet.</div></td></tr>`}</tbody>
+      </table>
+    </div>`;
+
+  $("#sp-edit-btn")?.addEventListener("click", ()=> openStaffModal(person));
+  $("#sp-delete-btn")?.addEventListener("click", ()=> deleteStaff(person));
+}
+
+$("#add-staff-btn").addEventListener("click", ()=> openStaffModal(null));
+$("#client-new-sp-btn").addEventListener("click", ()=> openStaffModal(null));
+
+function openStaffModal(person){
+  $("#staff-modal-title").textContent = person ? "Edit service person" : "New service person";
+  $("#staff-id").value = person && person.id ? person.id : "";
+  $("#staff-original-name").value = person ? person.name : "";
+  $("#staff-name").value = person ? person.name : "";
+  $("#staff-phone").value = person ? person.phone : "";
+  openModal("modal-staff");
+}
+
+$("#save-staff-btn").addEventListener("click", async ()=>{
+  const id = $("#staff-id").value;
+  const originalName = $("#staff-original-name").value;
+  const name = $("#staff-name").value.trim();
+  const phone = $("#staff-phone").value.trim();
+  if(!name){
+    toast("Please enter a name.");
+    return;
+  }
+  try{
+    if(id){
+      await updateDoc(doc(db, STAFF, id), { name, phone });
+    } else {
+      await addDoc(collection(db, STAFF), { name, phone, createdAt: serverTimestamp() });
+    }
+    // Keep clients' stored servicePerson text in sync if the name changed.
+    if(originalName && originalName !== name){
+      const affected = clients.filter(c => c.servicePerson === originalName);
+      await Promise.all(affected.map(c => updateDoc(doc(db, CLIENTS, c.id), { servicePerson: name })));
+    }
+    activeServicePerson = name;
+    if($("#modal-client").classList.contains("open")) pendingServicePersonSelect = name;
+    toast("Service person saved.");
+    closeModal("modal-staff");
+  }catch(err){ toast("Error saving service person: " + err.message); }
+});
+
+async function deleteStaff(person){
+  const assigned = clients.filter(c => c.servicePerson === person.name).length;
+  const msg = assigned
+    ? `Delete ${person.name}? ${assigned} client(s) still list them as the service person — those clients will keep the name but the saved phone number will be removed.`
+    : `Delete ${person.name}?`;
+  if(!confirm(msg)) return;
+  try{
+    if(person.id) await deleteDoc(doc(db, STAFF, person.id));
+    activeServicePerson = null;
+    toast("Service person deleted.");
+  }catch(err){ toast("Error deleting service person: " + err.message); }
+}
+
+/* ---------------------------------------------------------------------- */
+/* 4-week review modal                                                     */
+/* ---------------------------------------------------------------------- */
+let reviewCycleId = null;
+function openReviewModal(cycleId){
+  reviewCycleId = cycleId;
+  const c = cycles.find(x=>x.id===cycleId);
+  $("#review-sub").textContent = `${c.clientName} · ${c.servicePerson} · cycle ${fmtDate(c.cycleStart)} → ${fmtDate(cycleEndDate(c))}`;
+  $("#review-skip-section").style.display = "none";
+  $("#review-close-only").style.display = "none";
+  $(".yn-row").style.display = "flex";
+  $("#review-completed-count").value = "";
+  $("#skip-rows").innerHTML = "";
+  openModal("modal-review");
+}
+$("#review-yes").addEventListener("click", async ()=>{
+  const prevCycle = cycles.find(x=>x.id===reviewCycleId);
+  await updateDoc(doc(db, CYCLES, reviewCycleId), {
+    servicesCompleted: TARGET_SERVICES, skippedDays: [], status: "invoice_pending"
+  });
+  closeModal("modal-review");
+  toast("Nice — 8/8 services confirmed. Invoice is waiting on the dashboard whenever you're ready.");
+  if(prevCycle) openNextCycleModal(prevCycle);
+});
+$("#review-no").addEventListener("click", ()=>{
+  $(".yn-row").style.display = "none";
+  $("#review-skip-section").style.display = "block";
+  if(!$("#skip-rows").children.length) addSkipRow();
+});
+$("#add-skip-row").addEventListener("click", addSkipRow);
+function addSkipRow(){
+  const row = document.createElement("div");
+  row.className = "skip-row";
+  row.innerHTML = `
+    <input type="date" class="skip-date" max="${todayStr()}">
+    <input type="text" class="skip-reason" placeholder="Reason (e.g. rain, client unavailable)">
+    <button type="button" class="rm">✕</button>`;
+  row.querySelector(".rm").addEventListener("click", ()=> row.remove());
+  $("#skip-rows").appendChild(row);
+}
+$("#save-review-btn").addEventListener("click", async ()=>{
+  const completed = Number($("#review-completed-count").value);
+  if(isNaN(completed) || completed < 0 || completed > 8){
+    toast("Enter how many services were completed (0-8).");
+    return;
+  }
+  const skippedDays = $$("#skip-rows .skip-row").map(row=>({
+    date: row.querySelector(".skip-date").value,
+    reason: row.querySelector(".skip-reason").value.trim()
+  })).filter(s => s.date || s.reason);
+
+  if(!skippedDays.length){
+    toast("Add at least one skipped day with a reason.");
+    return;
+  }
+  const prevCycle = cycles.find(x=>x.id===reviewCycleId);
+  await updateDoc(doc(db, CYCLES, reviewCycleId), {
+    servicesCompleted: completed, skippedDays, status: "invoice_pending"
+  });
+  closeModal("modal-review");
+  toast("Cycle recorded — " + skippedDays.length + " day(s) skipped. Invoice is waiting on the dashboard whenever you're ready.");
+  if(prevCycle) openNextCycleModal(prevCycle);
+});
+
+/* ---------------------------------------------------------------------- */
+/* Invoice modal                                                           */
+/* ---------------------------------------------------------------------- */
+let invoiceCycleId = null;
+function openInvoiceModal(cycleId){
+  invoiceCycleId = cycleId;
+  const c = cycles.find(x=>x.id===cycleId);
+  if(!c) return;
+  const isResend = c.status === "payment_pending";
+  $("#invoice-modal-title").textContent = isResend ? "Update / Resend invoice" : "Send invoice";
+  $("#invoice-sub").textContent = isResend
+    ? `Invoice already sent to ${c.clientName} for ${fmtMoney(c.agreedPrice)}. Update invoice number or resend below.`
+    : `Send the invoice to ${c.clientName} for ${fmtMoney(c.agreedPrice)} (${c.servicesCompleted}/8 services completed), then confirm below.`;
+  $("#invoice-number").value = c.invoiceNumber || "";
+  $("#confirm-invoice-btn").textContent = isResend ? "Update invoice" : "Confirm invoice sent";
+  openModal("modal-invoice");
+  setTimeout(() => $("#invoice-number").focus(), 50);
+}
+$("#confirm-invoice-btn").addEventListener("click", async ()=>{
+  const invNum = $("#invoice-number").value.trim() || null;
+  const c = cycles.find(x=>x.id===invoiceCycleId);
+
+  if (useMock) {
+    if (c) {
+      c.invoiceNumber = invNum;
+      if (c.status === "invoice_pending") {
+        c.status = "payment_pending";
+        c.invoiceSentAt = { toDate: () => new Date() };
+      }
+      renderAll();
+    }
+    closeModal("modal-invoice");
+    toast(c && c.status === "payment_pending" && invNum ? `Invoice #${invNum} saved.` : "Invoice marked as sent.");
+    return;
+  }
+
+  try {
+    const updateData = { invoiceNumber: invNum };
+    if (!c || c.status === "invoice_pending") {
+      updateData.status = "payment_pending";
+      updateData.invoiceSentAt = serverTimestamp();
+    }
+    await updateDoc(doc(db, CYCLES, invoiceCycleId), updateData);
+    closeModal("modal-invoice");
+    toast(invNum ? `Invoice #${invNum} saved.` : "Invoice marked as sent.");
+  } catch(err) {
+    toast("Error saving invoice: " + err.message);
+  }
+});
+
+/* ---------------------------------------------------------------------- */
+/* Payment modal                                                           */
+/* ---------------------------------------------------------------------- */
+let paymentCycleId = null;
+function openPaymentModal(cycleId){
+  paymentCycleId = cycleId;
+  const c = cycles.find(x=>x.id===cycleId);
+  if(!c) return;
+  $("#payment-sub").textContent = `Confirm payment of ${fmtMoney(c.agreedPrice)} received from ${c.clientName}.`;
+  $("#payment-invoice-number").value = c.invoiceNumber || "";
+  openModal("modal-payment");
+}
+$("#confirm-payment-btn").addEventListener("click", async ()=>{
+  const invNum = $("#payment-invoice-number").value.trim() || null;
+  const c = cycles.find(x=>x.id===paymentCycleId);
+
+  if (useMock) {
+    if (c) {
+      c.status = "completed";
+      c.paymentReceivedAt = { toDate: () => new Date() };
+      if (invNum !== null) c.invoiceNumber = invNum;
+      renderAll();
+    }
+    closeModal("modal-payment");
+    toast("Payment confirmed. Cycle moved to history.");
+    if(c) openNextCycleModal(c);
+    return;
+  }
+
+  try {
+    const updateData = { status: "completed", paymentReceivedAt: serverTimestamp() };
+    if (invNum !== null) updateData.invoiceNumber = invNum;
+    await updateDoc(doc(db, CYCLES, paymentCycleId), updateData);
+    closeModal("modal-payment");
+    toast("Payment confirmed. Cycle moved to history.");
+    if(c) openNextCycleModal(c);
+  } catch(err) {
+    toast("Error confirming payment: " + err.message);
+  }
+});
+
+/* ---------------------------------------------------------------------- */
+/* Quick Invoice Number modal (for old & new cycles)                       */
+/* ---------------------------------------------------------------------- */
+window.openInvoiceNumberModal = function(cycleId){
+  const c = cycles.find(x=>x.id===cycleId);
+  if(!c) return;
+  $("#quick-inv-cycle-id").value = cycleId;
+  const statusLabel = c.status === "completed" ? "Paid / Completed" : (c.status === "payment_pending" ? "Payment Pending" : (c.status === "invoice_pending" ? "Invoice Pending" : "In Progress"));
+  $("#invoice-number-sub").textContent = `${c.clientName} · ${esc(c.description || getShortMonthName(c.cycleStart))} (${statusLabel})`;
+  $("#quick-invoice-number").value = c.invoiceNumber || "";
+  openModal("modal-invoice-number");
+  setTimeout(() => $("#quick-invoice-number").focus(), 50);
+};
+
+$("#save-quick-inv-btn").addEventListener("click", async ()=>{
+  const cycleId = $("#quick-inv-cycle-id").value;
+  const invNum = $("#quick-invoice-number").value.trim() || null;
+  const c = cycles.find(x=>x.id===cycleId);
+
+  if (useMock) {
+    if (c) {
+      c.invoiceNumber = invNum;
+      renderAll();
+    }
+    closeModal("modal-invoice-number");
+    toast(invNum ? `Invoice #${invNum} saved.` : "Invoice number cleared.");
+    return;
+  }
+
+  try {
+    await updateDoc(doc(db, CYCLES, cycleId), { invoiceNumber: invNum });
+    closeModal("modal-invoice-number");
+    toast(invNum ? `Invoice #${invNum} saved.` : "Invoice number cleared.");
+  } catch(err) {
+    toast("Error saving invoice number: " + err.message);
+  }
+});
+
+/* ---------------------------------------------------------------------- */
+/* Next cycle modal                                                        */
+/* ---------------------------------------------------------------------- */
+let nextCycleClient = null;
+function openNextCycleModal(prevCycle, clientIdIfManual){
+  let client;
+  let defaultStart;
+  if(prevCycle){
+    client = clients.find(c=>c.id===prevCycle.clientId);
+    defaultStart = addDays(cycleEndDate(prevCycle), 1);
+  } else {
+    client = clients.find(c=>c.id===clientIdIfManual);
+    defaultStart = todayStr();
+  }
+  if(!client) return;
+  // A cycle for this client is already running — don't ask to start another one.
+  const alreadyRunning = activeCycleForClient(client.id);
+  if(alreadyRunning){
+    toast(`${client.name} already has a cycle in progress (${fmtDate(alreadyRunning.cycleStart)} → ${fmtDate(cycleEndDate(alreadyRunning))}) — skipping the restart prompt.`);
+    return;
+  }
+  nextCycleClient = client;
+  const trailingNote = (prevCycle && prevCycle.status !== "completed")
+    ? ` (its invoice/payment will keep showing on the dashboard until wrapped up)`
+    : "";
+  $("#next-cycle-sub").textContent = `Start the next 8-service cycle for ${client.name}?${trailingNote}`;
+  $("#next-cycle-start").value = defaultStart;
+  $("#next-cycle-desc").value = getShortMonthName(defaultStart);
+  $("#next-cycle-end").value = "";
+  $("#next-eom-toggle").checked = false;
+  openModal("modal-next-cycle");
+}
+$("#next-eom-toggle").addEventListener("change", (e)=>{
+  if(e.target.checked) applyEndOfMonth("next-cycle-start", "next-cycle-end", "next-eom-toggle");
+});
+$("#next-cycle-start").addEventListener("change", ()=>{
+  if($("#next-eom-toggle").checked) applyEndOfMonth("next-cycle-start", "next-cycle-end", "next-eom-toggle");
+  $("#next-cycle-desc").value = getShortMonthName($("#next-cycle-start").value);
+});
+
+$("#confirm-next-cycle-btn").addEventListener("click", async ()=>{
+  const cycleStart = $("#next-cycle-start").value;
+  const cycleEndOverride = $("#next-cycle-end").value || null;
+  if(!cycleStart){ toast("Pick a start date."); return; }
+  // Re-check right before writing, in case a cycle was started elsewhere while this modal was open.
+  if(activeCycleForClient(nextCycleClient.id)){
+    toast(`${nextCycleClient.name} already has a cycle in progress — not starting a duplicate.`);
+    closeModal("modal-next-cycle");
+    return;
+  }
+  const description = $("#next-cycle-desc").value.trim() || getShortMonthName(cycleStart);
+  await addDoc(collection(db, CYCLES), {
+    clientId: nextCycleClient.id, clientName: nextCycleClient.name, servicePerson: nextCycleClient.servicePerson,
+    agreedPrice: nextCycleClient.agreedPrice, cycleStart, cycleEndOverride, status: "in_progress",
+    servicesCompleted: null, skippedDays: [], invoiceSentAt: null, paymentReceivedAt: null, createdAt: serverTimestamp(),
+    description
+  });
+  closeModal("modal-next-cycle");
+  toast("New cycle started.");
+});
+
+/* History view logic removed */
+
+/* ---------------------------------------------------------------------- */
+/* Payments & Billing Tracker                                             */
+/* ---------------------------------------------------------------------- */
+function initPaymentsTabListeners(){
+  if(paymentsListenersInitialized) return;
+  paymentsListenersInitialized = true;
+  $$("[data-subtab]").forEach(tab => {
+    tab.addEventListener("click", () => {
+      $$("[data-subtab]").forEach(t => t.classList.remove("active"));
+      tab.classList.add("active");
+      activePaymentsSubTab = tab.dataset.subtab;
+      
+      $("#pay-subtab-outstanding").style.display = (activePaymentsSubTab === "outstanding") ? "block" : "none";
+      $("#pay-subtab-matrix").style.display = (activePaymentsSubTab === "matrix") ? "block" : "none";
+      $("#pay-subtab-ledgers").style.display = (activePaymentsSubTab === "ledgers") ? "block" : "none";
+      
+      renderPayments();
+    });
+  });
+  
+  $("#pay-outstanding-search").addEventListener("input", renderPayments);
+  $("#pay-outstanding-age-filter").addEventListener("change", renderPayments);
+  
+  $("#pay-ledger-search").addEventListener("input", renderPayments);
+  $("#pay-ledger-balance-filter").addEventListener("change", renderPayments);
+}
+
+function renderPayments(){
+  const dashCycles = liveCycles();
+  const now = new Date();
+  
+  // Calculate Totals
+  const awaitingInvoiceTotal = dashCycles
+    .filter(c => c.status === "invoice_pending")
+    .reduce((sum, c) => sum + Number(c.agreedPrice || 0), 0);
+    
+  const awaitingPaymentTotal = dashCycles
+    .filter(c => c.status === "payment_pending")
+    .reduce((sum, c) => sum + Number(c.agreedPrice || 0), 0);
+    
+  const totalOutstanding = awaitingInvoiceTotal + awaitingPaymentTotal;
+  
+  const monthRevenue = dashCycles
+    .filter(c => c.status === "completed" && c.paymentReceivedAt && sameMonth(c.paymentReceivedAt, now))
+    .reduce((sum, c) => sum + Number(c.agreedPrice || 0), 0);
+    
+  $("#pay-stat-total-unpaid").textContent = fmtMoney(totalOutstanding);
+  $("#pay-stat-awaiting-invoice").textContent = fmtMoney(awaitingInvoiceTotal);
+  $("#pay-stat-awaiting-payment").textContent = fmtMoney(awaitingPaymentTotal);
+  $("#pay-stat-month-revenue").textContent = fmtMoney(monthRevenue);
+  
+  if (activePaymentsSubTab === "outstanding") {
+    renderOutstandingSubtab(dashCycles);
+  } else if (activePaymentsSubTab === "matrix") {
+    renderMatrixSubtab();
+  } else if (activePaymentsSubTab === "ledgers") {
+    renderLedgersSubtab(dashCycles);
+  }
+}
+
+function renderOutstandingSubtab(dashCycles){
+  const term = ($("#pay-outstanding-search").value || "").toLowerCase();
+  const filter = $("#pay-outstanding-age-filter").value;
+  
+  // Unpaid cycles: status is invoice_pending or payment_pending
+  let unpaid = dashCycles.filter(c => c.status === "invoice_pending" || c.status === "payment_pending");
+  
+  // Search
+  unpaid = unpaid.filter(c => 
+    (c.clientName || "").toLowerCase().includes(term) || 
+    (c.servicePerson || "").toLowerCase().includes(term) ||
+    (c.invoiceNumber || "").toLowerCase().includes(term)
+  );
+  
+  // Filter by age / status
+  if (filter === "overdue_30") {
+    unpaid = unpaid.filter(c => c.status === "payment_pending" && c.invoiceSentAt && daysSince(c.invoiceSentAt) >= 30);
+  } else if (filter === "overdue_14") {
+    unpaid = unpaid.filter(c => {
+      if (c.status === "payment_pending" && c.invoiceSentAt) {
+        return daysSince(c.invoiceSentAt) >= 14;
+      }
+      if (c.status === "invoice_pending") {
+        return daysSince(cycleEndDate(c)) >= 14;
+      }
+      return false;
+    });
+  } else if (filter === "awaiting_invoice") {
+    unpaid = unpaid.filter(c => c.status === "invoice_pending");
+  } else if (filter === "awaiting_payment") {
+    unpaid = unpaid.filter(c => c.status === "payment_pending");
+  }
+  
+  // Sort: oldest outstanding first
+  unpaid.sort((a, b) => {
+    const ageA = a.status === "payment_pending" ? (a.invoiceSentAt ? a.invoiceSentAt.seconds || new Date(a.invoiceSentAt).getTime() / 1000 : 0) : new Date(cycleEndDate(a)).getTime() / 1000;
+    const ageB = b.status === "payment_pending" ? (b.invoiceSentAt ? b.invoiceSentAt.seconds || new Date(b.invoiceSentAt).getTime() / 1000 : 0) : new Date(cycleEndDate(b)).getTime() / 1000;
+    return ageA - ageB;
+  });
+  
+  if (!unpaid.length) {
+    $("#pay-outstanding-list").innerHTML = `<div class="empty-state"><div class="big">🎉</div>No outstanding bills match these filters. All clear!</div>`;
+    return;
+  }
+  
+  $("#pay-outstanding-list").innerHTML = unpaid.map(c => {
+    const client = clientById(c.clientId);
+    let statusLabel = "";
+    let alertTone = "amber";
+    let actionBtn = "";
+    let outstandingText = "";
+    
+    if (c.status === "invoice_pending") {
+      statusLabel = "Invoice Pending";
+      const days = daysSince(cycleEndDate(c));
+      outstandingText = `Cycle ended ${days === 0 ? "today" : days + " day" + (days === 1 ? "" : "s") + " ago"}`;
+      alertTone = days >= 14 ? "danger" : "amber";
+      actionBtn = `<button class="btn btn-amber btn-sm" data-action="invoice" data-id="${c.id}">Send invoice</button>`;
+    } else if (c.status === "payment_pending") {
+      statusLabel = "Payment Pending";
+      const days = c.invoiceSentAt ? daysSince(c.invoiceSentAt) : 0;
+      outstandingText = `Invoice sent ${days === 0 ? "today" : days + " day" + (days === 1 ? "" : "s") + " ago"}`;
+      alertTone = days >= 30 ? "danger" : (days >= 14 ? "amber" : "aqua");
+      actionBtn = `
+        <div style="display:flex;gap:6px;align-items:center;">
+          <button class="btn btn-outline btn-sm" data-action="invoice" data-id="${c.id}" title="Edit invoice details">🧾 Invoice</button>
+          <button class="btn btn-primary btn-sm" data-action="payment" data-id="${c.id}">Confirm payment</button>
+        </div>
+      `;
+    }
+    
+    const invTag = c.invoiceNumber
+      ? `<span class="invoice-tag clickable" onclick="openInvoiceNumberModal('${c.id}')" title="Click to edit invoice number">🧾 ${esc(c.invoiceNumber)}</span>`
+      : (c.status === "payment_pending" ? `<button class="invoice-tag-empty" onclick="openInvoiceNumberModal('${c.id}')" title="Add invoice number">+ Add Inv #</button>` : "");
+    
+    const descVal = c.description || getShortMonthName(c.cycleStart);
+    const descHTML = `<div class="card-meta" style="margin-top:3px;font-size:11.5px;color:var(--muted);display:flex;align-items:center;">✍️ Description: <input type="text" class="inline-desc-input" value="${esc(descVal)}" data-cycle-id="${c.id}"> <span style="font-size:10px;margin-left:4px;cursor:pointer;" title="Click to edit">✏️</span></div>`;
+    const notesLine = client && client.notes ? `<div class="card-meta" style="margin-top:6px;color:var(--ink);">📝 ${esc(client.notes)}</div>` : "";
+    const phoneLine = client && client.phone ? phoneCell(client.phone, c.clientName, c.agreedPrice) : "";
+    
+    // Add WhatsApp or call shortcuts directly for convenience
+    const wa = client && client.phone ? waLink(client.phone, paymentReminderMessage(c.clientName, fmtMoney(c.agreedPrice))) : null;
+    const directActions = `
+      <div style="display:flex;gap:6px;margin-top:8px;">
+        ${client && client.phone ? `<a class="btn btn-outline btn-sm" href="tel:${esc(client.phone)}">📞 Call</a>` : ""}
+        ${wa ? `<a class="btn btn-outline btn-sm" href="${wa}" target="_blank" rel="noopener">💬 WhatsApp</a>` : ""}
+        <button class="btn btn-outline btn-sm" data-action="mark-called" data-id="${c.id}">Mark called</button>
+      </div>
+    `;
+    
+    return `
+      <div class="card alert-${alertTone}">
+        <div class="card-row">
+          <div>
+            <div class="card-title">${esc(c.clientName)} <span class="pill pill-${c.status === "invoice_pending" ? "invoice" : "payment"}" style="font-size:10px;">${statusLabel}</span> ${invTag}</div>
+            <div class="card-meta">${esc(c.servicePerson)} · cycle ${fmtDate(c.cycleStart)} → ${fmtDate(cycleEndDate(c))} · <strong>${fmtMoney(c.agreedPrice)}</strong></div>
+            <div class="card-meta" style="font-weight:600;margin-top:3px;">⏳ ${outstandingText}</div>
+            ${descHTML}
+            ${phoneLine ? `<div class="card-meta" style="margin-top:3px;">📱 ${phoneLine}</div>` : ""}
+            ${notesLine}
+            ${c.status === "payment_pending" ? directActions : ""}
+          </div>
+          <div class="card-actions">${actionBtn}</div>
+        </div>
+      </div>
+    `;
+  }).join("");
+  
+  bindAlertCardActions();
+}
+
+const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+function getLast6Months() {
+  const current = todayStr();
+  const [cy, cm] = current.split("-").map(Number);
+  const result = [];
+  for (let i = 5; i >= 0; i--) {
+    let m = cm - i;
+    let y = cy;
+    if (m <= 0) {
+      m += 12;
+      y -= 1;
+    }
+    const ym = `${y}-${String(m).padStart(2, "0")}`;
+    result.push({
+      ym,
+      label: `${monthNames[m-1]} ${y}`
+    });
+  }
+  return result;
+}
+
+function renderMatrixSubtab(){
+  const last6 = getLast6Months();
+  
+  // Headers
+  $("#pay-matrix-headers").innerHTML = `<th>Client</th>` + 
+    last6.map(m => `<th>${m.label}</th>`).join("");
+    
+  // Build mapping of client -> monthYm -> cycle
+  const matrixData = {};
+  cycles.forEach(cy => {
+    const ym = cy.cycleStart.slice(0, 7);
+    if (!matrixData[cy.clientId]) {
+      matrixData[cy.clientId] = {};
+    }
+    // Store the cycle, prefer keeping newer/completed ones if there are duplicate starting dates
+    if (!matrixData[cy.clientId][ym] || cy.status === "completed" || matrixData[cy.clientId][ym].status === "in_progress") {
+      matrixData[cy.clientId][ym] = cy;
+    }
+  });
+  
+  // Rows for active and inactive clients
+  const activeClients = clients.filter(c => c.active !== false);
+  if (!activeClients.length) {
+    $("#pay-matrix-tbody").innerHTML = `<tr><td colspan="${last6.length + 1}"><div class="empty-state">No clients to display.</div></td></tr>`;
+    return;
+  }
+  
+  $("#pay-matrix-tbody").innerHTML = activeClients.map(c => {
+    const cells = last6.map(m => {
+      const cy = matrixData[c.id] ? matrixData[c.id][m.ym] : null;
+      if (!cy) {
+        return `<td><span class="cell-badge none" title="No cycle started">—</span></td>`;
+      }
+      
+      if (cy.status === "completed") {
+        return `<td><span class="cell-badge done" title="Paid — Completed cycle">✓</span></td>`;
+      } else if (cy.status === "payment_pending") {
+        return `<td><span class="cell-badge payment-pending" data-action="payment" data-id="${cy.id}" title="Invoice Sent — Click to Confirm Payment">🧾</span></td>`;
+      } else if (cy.status === "invoice_pending" || needsReview(cy)) {
+        return `<td><span class="cell-badge invoice-pending" data-action="invoice" data-id="${cy.id}" title="Service Cycle Complete — Click to Send Invoice">⚠</span></td>`;
+      } else {
+        return `<td><span class="cell-badge in-progress" title="Cycle In Progress">▶</span></td>`;
+      }
+    }).join("");
+    
+    return `
+      <tr>
+        <td><strong>${esc(c.name)}</strong><br><span style="font-size:10.5px;color:var(--muted);">${esc(c.servicePerson)}</span></td>
+        ${cells}
+      </tr>
+    `;
+  }).join("");
+  
+  bindAlertCardActions();
+}
+
+function renderLedgersSubtab(dashCycles){
+  const term = ($("#pay-ledger-search").value || "").toLowerCase();
+  const hasBalanceOnly = $("#pay-ledger-balance-filter").value === "has_balance";
+  
+  const ledgerData = clients.map(c => {
+    const clientCycles = cycles.filter(cy => cy.clientId === c.id);
+    
+    const unpaid = clientCycles.filter(cy => cy.status === "invoice_pending" || cy.status === "payment_pending");
+    const outstanding = unpaid.reduce((sum, cy) => sum + Number(cy.agreedPrice || 0), 0);
+    
+    const paidCycles = clientCycles.filter(cy => cy.status === "completed");
+    const paidTotal = paidCycles.reduce((sum, cy) => sum + Number(cy.agreedPrice || 0), 0);
+    
+    const totalBilled = clientCycles.reduce((sum, cy) => sum + Number(cy.agreedPrice || 0), 0);
+    
+    return {
+      client: c,
+      cycles: clientCycles,
+      outstanding,
+      paidTotal,
+      totalBilled
+    };
+  });
+  
+  // Filter
+  let filtered = ledgerData.filter(l => (l.client.name || "").toLowerCase().includes(term));
+  if (hasBalanceOnly) {
+    filtered = filtered.filter(l => l.outstanding > 0);
+  }
+  
+  if (!filtered.length) {
+    $("#pay-ledgers-list").innerHTML = `<div class="empty-state">No clients match your filter.</div>`;
+    return;
+  }
+  
+  $("#pay-ledgers-list").innerHTML = filtered.map(l => {
+    const c = l.client;
+    const isOpen = ledgerOpenClients.has(c.id);
+    
+    const cycleRows = l.cycles.sort((a,b) => b.cycleStart.localeCompare(a.cycleStart)).map(cy => {
+      const meta = STATUS_META[cy.status] || STATUS_META.in_progress;
+      let dateMeta = "";
+      if (cy.status === "completed") {
+        dateMeta = `Paid on ${fmtDate(tsToDateStr(cy.paymentReceivedAt))}`;
+      } else if (cy.status === "payment_pending") {
+        dateMeta = `Invoiced on ${fmtDate(tsToDateStr(cy.invoiceSentAt))}`;
+      } else if (cy.status === "invoice_pending") {
+        dateMeta = `Cycle ended ${fmtDate(cycleEndDate(cy))}`;
+      } else {
+        dateMeta = `Ends on ${fmtDate(cycleEndDate(cy))}`;
+      }
+      
+      let actionBtn = "";
+      if (cy.status === "invoice_pending") {
+        actionBtn = `<button class="btn btn-amber btn-sm" data-action="invoice" data-id="${cy.id}">Send invoice</button>`;
+      } else if (cy.status === "payment_pending") {
+        actionBtn = `
+          <button class="btn btn-outline btn-sm" data-action="invoice" data-id="${cy.id}" title="Edit invoice details">🧾 Invoice</button>
+          <button class="btn btn-primary btn-sm" data-action="payment" data-id="${cy.id}">Confirm payment</button>
+        `;
+      }
+      
+      const invTag = cy.invoiceNumber
+        ? `<span class="invoice-tag clickable" onclick="openInvoiceNumberModal('${cy.id}')" title="Click to edit invoice number">🧾 ${esc(cy.invoiceNumber)}</span>`
+        : `<button class="invoice-tag-empty" onclick="openInvoiceNumberModal('${cy.id}')" title="Add invoice number">+ Add Inv #</button>`;
+      
+      return `
+        <div style="padding: 10px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px;">
+          <div>
+            <div style="font-size: 13px; font-weight: 600;">${fmtDate(cy.cycleStart)} → ${fmtDate(cycleEndDate(cy))}</div>
+            <div style="font-size: 11.5px; color: var(--muted);">${dateMeta} · Service: ${esc(cy.servicePerson)}</div>
+          </div>
+          <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            ${invTag}
+            <strong class="mono" style="font-size: 13px;">${fmtMoney(cy.agreedPrice)}</strong>
+            <span class="pill ${meta.pill}" style="font-size: 10.5px;">${meta.label}</span>
+            ${actionBtn}
+          </div>
+        </div>
+      `;
+    }).join("");
+    
+    return `
+      <div class="ledger-client-group${isOpen ? " open" : ""}" data-ledger-client="${c.id}">
+        <div class="ledger-client-header" onclick="toggleLedgerClient('${c.id}')">
+          <div>
+            <div class="ledger-client-title">${esc(c.name)}</div>
+            <div class="card-meta">${esc(c.servicePerson)}</div>
+          </div>
+          <div class="ledger-client-summary">
+            <div>Paid: <span style="color:#2E8B4F;">${fmtMoney(l.paidTotal)}</span></div>
+            <div>Owed: <span style="${l.outstanding > 0 ? "color:var(--danger); font-weight:700;" : "color:var(--muted);"}" class="mono">${fmtMoney(l.outstanding)}</span></div>
+            <div class="accordion-chevron" style="margin-left: 8px;">▸</div>
+          </div>
+        </div>
+        <div class="ledger-client-details">
+          <div style="font-size: 12px; font-weight: bold; color: var(--teal-deep); text-transform: uppercase; margin-bottom: 8px;">Billing Timeline</div>
+          <div style="max-height: 350px; overflow-y: auto;">
+            ${cycleRows || '<div class="empty-state" style="padding: 10px 0;">No cycles recorded for this client.</div>'}
+          </div>
+        </div>
+      </div>
+    `;
+  }).join("");
+  
+  bindAlertCardActions();
+}
+
+window.toggleLedgerClient = function(clientId) {
+  if (ledgerOpenClients.has(clientId)) {
+    ledgerOpenClients.delete(clientId);
+  } else {
+    ledgerOpenClients.add(clientId);
+  }
+  const el = document.querySelector(`.ledger-client-group[data-ledger-client="${clientId}"]`);
+  if (el) {
+    el.classList.toggle("open");
+  }
+};
+
+// Inline description auto-save listener
+document.addEventListener("change", async (e) => {
+  if (e.target.classList.contains("inline-desc-input")) {
+    const cycleId = e.target.dataset.cycleId;
+    const newDesc = e.target.value.trim();
+    if(useMock){
+      const cy = cycles.find(x=>x.id===cycleId);
+      if(cy){
+        cy.description = newDesc;
+        renderAll();
+        toast("Description saved.");
+      }
+      return;
+    }
+    try {
+      await updateDoc(doc(db, CYCLES, cycleId), { description: newDesc });
+      toast("Description saved.");
+    } catch(err) {
+      toast("Error saving description: " + err.message);
+    }
+  }
+});
+
+// Service Entries CRUD Section
+function renderEntries() {
+  const term = ($("#entry-search").value || "").toLowerCase();
+  const statusFilter = $("#entry-filter-status").value;
+  const spFilter = $("#entry-filter-sp").value;
+
+  // Filter cycles
+  let filtered = cycles.filter(cy => {
+    const matchesSearch = (cy.clientName || "").toLowerCase().includes(term) ||
+                          (cy.description || "").toLowerCase().includes(term) ||
+                          (cy.invoiceNumber || "").toLowerCase().includes(term);
+    const matchesStatus = !statusFilter || cy.status === statusFilter;
+    const matchesSp = !spFilter || cy.servicePerson === spFilter;
+    return matchesSearch && matchesStatus && matchesSp;
+  });
+
+  // Populate service person filter select options if not already filled
+  const spSelect = $("#entry-filter-sp");
+  const currentVal = spSelect.value;
+  const uniqueSps = Array.from(new Set(cycles.map(cy => cy.servicePerson).filter(Boolean))).sort();
+  spSelect.innerHTML = `<option value="">All Service Persons</option>` +
+    uniqueSps.map(sp => `<option value="${esc(sp)}"${sp === currentVal ? " selected" : ""}>${esc(sp)}</option>`).join("");
+
+  const statusLabels = {
+    in_progress: { label: "In Progress", pill: "pill-progress" },
+    invoice_pending: { label: "Invoice Pending", pill: "pill-invoice" },
+    payment_pending: { label: "Payment Pending", pill: "pill-payment" },
+    completed: { label: "Completed", pill: "pill-done" }
+  };
+
+  // Render Desktop table body
+  if (!filtered.length) {
+    $("#entries-tbody").innerHTML = `<tr><td colspan="9"><div class="empty-state">No service entries found.</div></td></tr>`;
+    $("#entries-cards").innerHTML = `<div class="empty-state">No service entries found.</div>`;
+    return;
+  }
+
+  $("#entries-tbody").innerHTML = filtered.map(cy => {
+    const meta = statusLabels[cy.status] || { label: cy.status, pill: "pill-progress" };
+    const dateRange = `${fmtDate(cy.cycleStart)} → ${fmtDate(cycleEndDate(cy))}`;
+    const completedText = cy.status === "completed" ? "8/8" : `${cy.servicesCompleted || 0}/8`;
+    const invCell = cy.invoiceNumber
+      ? `<span class="invoice-tag clickable" onclick="openInvoiceNumberModal('${cy.id}')" title="Click to edit invoice number">🧾 ${esc(cy.invoiceNumber)}</span>`
+      : `<button class="invoice-tag-empty" onclick="openInvoiceNumberModal('${cy.id}')" title="Add invoice number">+ Add #</button>`;
+    
+    return `
+      <tr>
+        <td><strong>${esc(cy.clientName)}</strong></td>
+        <td><span class="pill pill-progress" style="text-transform:none;background:var(--aqua-soft);color:var(--teal-deep);">${esc(cy.description || "—")}</span></td>
+        <td>${esc(cy.servicePerson)}</td>
+        <td class="mono" style="font-size:12.5px;">${dateRange}</td>
+        <td style="font-weight:600;">${completedText}</td>
+        <td class="mono">${fmtMoney(cy.agreedPrice)}</td>
+        <td>${invCell}</td>
+        <td><span class="pill ${meta.pill}">${meta.label}</span></td>
+        <td>
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-outline btn-sm" onclick="openEntryModal('${cy.id}')" title="Edit">✏️ Edit</button>
+            <button class="btn btn-outline btn-sm" onclick="deleteEntry('${cy.id}')" title="Delete" style="color:var(--danger);border-color:var(--danger-soft);">🗑️ Delete</button>
+          </div>
+        </td>
+      </tr>
+    `;
+  }).join("");
+
+  // Render Mobile cards
+  $("#entries-cards").innerHTML = filtered.map(cy => {
+    const meta = statusLabels[cy.status] || { label: cy.status, pill: "pill-progress" };
+    const dateRange = `${fmtDate(cy.cycleStart)} → ${fmtDate(cycleEndDate(cy))}`;
+    const completedText = cy.status === "completed" ? "8/8" : `${cy.servicesCompleted || 0}/8`;
+    const invTag = cy.invoiceNumber
+      ? `<span class="invoice-tag clickable" onclick="openInvoiceNumberModal('${cy.id}')">🧾 ${esc(cy.invoiceNumber)}</span>`
+      : `<button class="invoice-tag-empty" onclick="openInvoiceNumberModal('${cy.id}')">+ Add #</button>`;
+
+    return `
+      <div class="client-card">
+        <div class="client-card-top">
+          <div>
+            <div class="client-card-name">${esc(cy.clientName)}</div>
+            <div class="client-card-meta">Desc: <strong>${esc(cy.description || "—")}</strong> · Staff: ${esc(cy.servicePerson)}</div>
+          </div>
+          <span class="pill ${meta.pill}" style="font-size:10px;">${meta.label}</span>
+        </div>
+        <div class="client-card-cycle">
+          <div>Cycle: <span class="mono">${dateRange}</span></div>
+          <div style="margin-top:4px;">Services: <strong>${completedText}</strong> · Value: <strong class="mono">${fmtMoney(cy.agreedPrice)}</strong></div>
+          <div style="margin-top:4px;">Invoice: ${invTag}</div>
+        </div>
+        <div class="client-card-actions">
+          <button class="btn btn-outline" onclick="openEntryModal('${cy.id}')">✏️ Edit</button>
+          <button class="btn btn-outline" onclick="deleteEntry('${cy.id}')" style="color:var(--danger);border-color:var(--danger-soft);">🗑️ Delete</button>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+window.openEntryModal = function(id) {
+  const isEdit = !!id;
+  $("#entry-modal-title").textContent = isEdit ? "Edit Entry" : "New Entry";
+  $("#entry-id").value = id || "";
+
+  const clientSelect = $("#entry-client-id");
+  clientSelect.innerHTML = `<option value="">Select client</option>` +
+    clients.map(c => `<option value="${c.id}">${esc(c.name)}</option>`).join("");
+
+  const spSelect = $("#entry-service-person");
+  spSelect.innerHTML = `<option value="">Select service person</option>` +
+    staff.map(s => `<option value="${esc(s.name)}">${esc(s.name)}</option>`).join("");
+
+  if (isEdit) {
+    const cy = cycles.find(x => x.id === id);
+    if (cy) {
+      $("#entry-client-id").value = cy.clientId;
+      $("#entry-description").value = cy.description || "";
+      $("#entry-service-person").value = cy.servicePerson;
+      $("#entry-price").value = cy.agreedPrice;
+      $("#entry-start").value = cy.cycleStart;
+      $("#entry-end").value = cy.cycleEndOverride || "";
+      $("#entry-status").value = cy.status;
+      $("#entry-completed").value = cy.servicesCompleted !== null ? cy.servicesCompleted : "";
+      $("#entry-invoice-number").value = cy.invoiceNumber || "";
+      $("#entry-invoice-sent").value = cy.invoiceSentAt ? tsToDateStr(cy.invoiceSentAt) : "";
+      $("#entry-payment-received").value = cy.paymentReceivedAt ? tsToDateStr(cy.paymentReceivedAt) : "";
+    }
+  } else {
+    $("#entry-client-id").value = "";
+    $("#entry-description").value = getShortMonthName(todayStr());
+    $("#entry-service-person").value = "";
+    $("#entry-price").value = "";
+    $("#entry-start").value = todayStr();
+    $("#entry-end").value = "";
+    $("#entry-status").value = "in_progress";
+    $("#entry-completed").value = "";
+    $("#entry-invoice-number").value = "";
+    $("#entry-invoice-sent").value = "";
+    $("#entry-payment-received").value = "";
+  }
+
+  const updateFieldVisibilities = () => {
+    const status = $("#entry-status").value;
+    $("#entry-invoice-number-field").style.display = (status === "invoice_pending" || status === "payment_pending" || status === "completed") ? "block" : "none";
+    $("#entry-invoice-sent-field").style.display = (status === "payment_pending" || status === "completed") ? "block" : "none";
+    $("#entry-payment-received-field").style.display = (status === "completed") ? "block" : "none";
+  };
+  $("#entry-status").onchange = updateFieldVisibilities;
+  updateFieldVisibilities();
+
+  openModal("modal-entry");
+};
+
+window.deleteEntry = async function(id) {
+  if(!confirm("Are you sure you want to delete this service entry?")) return;
+  try {
+    if (useMock) {
+      const idx = cycles.findIndex(x => x.id === id);
+      if (idx !== -1) {
+        cycles.splice(idx, 1);
+        renderAll();
+        toast("Entry deleted (Mock).");
+      }
+      return;
+    }
+    await deleteDoc(doc(db, CYCLES, id));
+    toast("Entry deleted.");
+  } catch (err) {
+    toast("Error deleting entry: " + err.message);
+  }
+};
+
+function initEntriesTabListeners(){
+  $("#entry-search").addEventListener("input", renderEntries);
+  $("#entry-filter-status").addEventListener("change", renderEntries);
+  $("#entry-filter-sp").addEventListener("change", renderEntries);
+  $("#add-entry-btn").addEventListener("click", () => openEntryModal(null));
+
+  $("#entry-client-id").addEventListener("change", (e) => {
+    const cid = e.target.value;
+    const client = clients.find(x => x.id === cid);
+    if(client){
+      $("#entry-service-person").value = client.servicePerson;
+      $("#entry-price").value = client.agreedPrice;
+    }
+  });
+
+  $("#entry-start").addEventListener("change", () => {
+    $("#entry-description").value = getShortMonthName($("#entry-start").value);
+  });
+
+  $("#save-entry-btn").addEventListener("click", async () => {
+    const id = $("#entry-id").value;
+    const clientId = $("#entry-client-id").value;
+    const client = clients.find(x => x.id === clientId);
+    const clientName = client ? client.name : "";
+    const description = $("#entry-description").value.trim();
+    const servicePerson = $("#entry-service-person").value;
+    const agreedPrice = Number($("#entry-price").value);
+    const cycleStart = $("#entry-start").value;
+    const cycleEndOverride = $("#entry-end").value || null;
+    const status = $("#entry-status").value;
+    const completedVal = $("#entry-completed").value;
+    const servicesCompleted = completedVal !== "" ? Number(completedVal) : null;
+    const invoiceNumber = $("#entry-invoice-number").value.trim() || null;
+    const invoiceSentVal = $("#entry-invoice-sent").value;
+    const paymentReceivedVal = $("#entry-payment-received").value;
+
+    if(!clientId || !servicePerson || !agreedPrice || !cycleStart){
+      toast("Please fill in Client, Service Person, Price and Start Date.");
+      return;
+    }
+
+    const invoiceSentAtDate = invoiceSentVal ? new Date(invoiceSentVal + "T00:00:00") : null;
+    const paymentReceivedAtDate = paymentReceivedVal ? new Date(paymentReceivedVal + "T00:00:00") : null;
+
+    const data = {
+      clientId, clientName, description, servicePerson, agreedPrice, cycleStart, cycleEndOverride, status,
+      servicesCompleted,
+      invoiceNumber,
+      invoiceSentAt: useMock ? (invoiceSentVal ? { toDate: () => new Date(invoiceSentVal) } : null) : invoiceSentAtDate,
+      paymentReceivedAt: useMock ? (paymentReceivedVal ? { toDate: () => new Date(paymentReceivedVal) } : null) : paymentReceivedAtDate
+    };
+
+    try {
+      if (useMock) {
+        if (id) {
+          const idx = cycles.findIndex(x => x.id === id);
+          if (idx !== -1) {
+            cycles[idx] = { id, ...data };
+          }
+          toast("Entry updated.");
+        } else {
+          const newId = "cy" + (cycles.length + 1);
+          cycles.push({ id: newId, ...data });
+          toast("Entry created.");
+        }
+        renderAll();
+        closeModal("modal-entry");
+        return;
+      }
+
+      if (id) {
+        await updateDoc(doc(db, CYCLES, id), data);
+        toast("Entry updated.");
+      } else {
+        await addDoc(collection(db, CYCLES), {
+          ...data,
+          createdAt: serverTimestamp()
+        });
+        toast("Entry created.");
+      }
+      closeModal("modal-entry");
+    } catch (err) {
+      toast("Error saving entry: " + err.message);
+    }
+  });
+}
+
+$("#export-clients-btn").addEventListener("click", ()=>{
+  const term = ($("#client-search").value || "").toLowerCase();
+  const rows = clients
+    .filter(c => (c.name||"").toLowerCase().includes(term) || (c.servicePerson||"").toLowerCase().includes(term) || (c.phone||"").toLowerCase().includes(term))
+    .map(c => {
+      const cycle = activeCycleForClient(c.id);
+      return [c.name, c.phone || "", c.servicePerson || "", c.agreedPrice || "", c.active===false ? "Inactive" : "Active", cycle ? cycle.status : "No active cycle", c.notes || ""];
+    });
+  downloadCSV(`waterqo_clients_${todayStr()}.csv`, ["Client","Phone","Service person","Agreed price (LKR)","Active","Cycle status","Notes"], rows);
+  toast("Clients exported.");
+});
+
+/* History export removed */
+
+/* ---------------------------------------------------------------------- */
+/* Generic modal open/close                                                */
+/* ---------------------------------------------------------------------- */
+function openModal(id){ $("#"+id).classList.add("open"); }
+function closeModal(id){ $("#"+id).classList.remove("open"); }
+$$(".modal-overlay").forEach(overlay=>{
+  overlay.addEventListener("click", (e)=>{ if(e.target === overlay) overlay.classList.remove("open"); });
+  overlay.querySelectorAll("[data-close]").forEach(btn=>{
+    btn.addEventListener("click", ()=> overlay.classList.remove("open"));
+  });
+});
+
+/* ======================================================================
+   TEST MODE — delete this whole block to remove the feature entirely.
+   Also remove `let testDateOverride = null;` and revert todayStr() to
+   `return new Date().toISOString().slice(0,10);` further up this file,
+   and delete the #test-mode-banner / #test-mode-fab / #modal-test HTML.
+   ====================================================================== */
+function updateTestBanner(){
+  const banner = $("#test-mode-banner");
+  if(testDateOverride){
+    banner.style.display = "block";
+    $("#test-mode-banner-date").textContent = fmtDate(testDateOverride);
+    document.body.style.paddingTop = "34px";
+  } else {
+    banner.style.display = "none";
+    document.body.style.paddingTop = "0";
+  }
+}
+$("#test-mode-fab").addEventListener("click", ()=>{
+  $("#test-mode-date").value = testDateOverride || new Date().toISOString().slice(0,10);
+  openModal("modal-test");
+});
+$("#test-mode-banner").addEventListener("click", ()=>{
+  testDateOverride = null;
+  updateTestBanner();
+  renderAll();
+  toast("Test mode off — using the real date again.");
+});
+$("#test-mode-apply").addEventListener("click", ()=>{
+  const val = $("#test-mode-date").value;
+  if(!val){ toast("Pick a date first."); return; }
+  testDateOverride = val;
+  updateTestBanner();
+  renderAll();
+  closeModal("modal-test");
+  toast("Test mode on — app now thinks today is " + fmtDate(val) + ".");
+});
+$("#test-mode-clear").addEventListener("click", ()=>{
+  testDateOverride = null;
+  updateTestBanner();
+  renderAll();
+  closeModal("modal-test");
+  toast("Back to the real date.");
+});
+/* ==================== END TEST MODE ==================== */
+</script>
+</body>
+</html>
